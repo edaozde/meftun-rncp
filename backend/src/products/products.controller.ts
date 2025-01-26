@@ -2,15 +2,17 @@
 import {
   Body,
   Controller,
-  FileTypeValidator,
+  Delete,
   Get,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
+  Patch,
   Post,
-  UploadedFile,
   UseGuards,
   UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  FileTypeValidator,
+  MaxFileSizeValidator,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateProductRequest } from './dto/create-product.request';
@@ -72,5 +74,53 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   async getProduct(@Param('productId') productId: string) {
     return this.productsService.getProduct(+productId);
+  }
+
+  // === NOUVEAUX ENDPOINTS POUR LES VARIANTES ===
+
+  // Créer une variante pour un produit
+  @Post(':productId/variant')
+  @UseGuards(JwtAuthGuard)
+  async createVariant(
+    @Param('productId') productId: string,
+    @Body() body: { size: string; color: string; stock: number },
+  ) {
+    return this.productsService.addVariant(
+      +productId,
+      body.size,
+      body.color,
+      body.stock,
+    );
+  }
+
+  // Récupérer toutes les variantes d'un produit
+  @Get(':productId/variants')
+  @UseGuards(JwtAuthGuard)
+  async getVariants(@Param('productId') productId: string) {
+    return this.productsService.getVariants(+productId);
+  }
+
+  // Récupérer une variante spécifique
+  @Get('variant/:variantId')
+  @UseGuards(JwtAuthGuard)
+  async getVariant(@Param('variantId') variantId: string) {
+    return this.productsService.getVariantById(+variantId);
+  }
+
+  // Mettre à jour une variante
+  @Patch('variant/:variantId')
+  @UseGuards(JwtAuthGuard)
+  async updateVariant(
+    @Param('variantId') variantId: string,
+    @Body() body: Partial<{ size: string; color: string; stock: number }>,
+  ) {
+    return this.productsService.updateVariant(+variantId, body);
+  }
+
+  // Supprimer une variante
+  @Delete('variant/:variantId')
+  @UseGuards(JwtAuthGuard)
+  async deleteVariant(@Param('variantId') variantId: string) {
+    return this.productsService.deleteVariant(+variantId);
   }
 }

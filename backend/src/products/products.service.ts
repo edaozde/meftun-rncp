@@ -42,6 +42,62 @@ export class ProductsService {
     }
   }
 
+  // === NOUVELLES MÉTHODES POUR LES VARIANTES ===
+
+  // Créer une variante pour un produit donné
+  async addVariant(
+    productId: number,
+    size: string,
+    color: string,
+    stock: number,
+  ) {
+    return this.prismaService.variant.create({
+      data: {
+        productId,
+        size,
+        color,
+        stock,
+      },
+    });
+  }
+
+  // Récupérer toutes les variantes d'un produit
+  async getVariants(productId: number) {
+    return this.prismaService.variant.findMany({
+      where: { productId },
+    });
+  }
+
+  // Récupérer une variante spécifique par son ID
+  async getVariantById(variantId: number) {
+    try {
+      return await this.prismaService.variant.findUniqueOrThrow({
+        where: { id: variantId },
+      });
+    } catch (err) {
+      throw new NotFoundException(`Variant not found with ID ${variantId}`);
+    }
+  }
+
+  // Mettre à jour une variante
+  async updateVariant(
+    variantId: number,
+    data: Partial<{ size: string; color: string; stock: number }>,
+  ) {
+    return this.prismaService.variant.update({
+      where: { id: variantId },
+      data,
+    });
+  }
+
+  // Supprimer une variante
+  async deleteVariant(variantId: number) {
+    return this.prismaService.variant.delete({
+      where: { id: variantId },
+    });
+  }
+
+  // Vérifier si une image existe pour un produit
   private async imageExists(productId: number) {
     try {
       await fs.access(
