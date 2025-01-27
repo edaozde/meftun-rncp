@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { join } from 'path';
 import { PRODUCT_IMAGES } from './product-image';
 
+//commenter
 @Injectable()
 export class ProductsService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -14,8 +15,18 @@ export class ProductsService {
     return this.prismaService.product.create({
       data: {
         ...data,
-        userId,
+        user: { connect: { id: userId } },
+        variants: {
+          create: data.variants?.map((variant) => ({
+            size: variant.size,
+            color: variant.color,
+            stock: variant.stock,
+          })),
+        },
+        description: data.description,
+        price: data.price,
       },
+      include: { variants: true },
     });
   }
 

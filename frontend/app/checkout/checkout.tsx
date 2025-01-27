@@ -21,7 +21,7 @@ export default function Checkout({ productId }: CheckoutProps) {
       className="max-w-[25%]"
       onClick={handleCheckout}
     >
-      Acheter 
+      Acheter !
     </Button>
   );
 }

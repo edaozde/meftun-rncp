@@ -8,6 +8,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { CheckoutModule } from './checkout/checkout.module';
 
+
 @Module({
   imports: [
     LoggerModule.forRootAsync({
@@ -44,3 +45,5 @@ import { CheckoutModule } from './checkout/checkout.module';
   providers: [],
 })
 export class AppModule {}
+
+//commenter

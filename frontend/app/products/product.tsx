@@ -35,3 +35,4 @@ export default function Product({ product }: ProductProps) {
     </CardActionArea>
   );
 }
+//commenter

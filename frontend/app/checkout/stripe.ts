@@ -12,3 +12,5 @@ const getStripe = async () => {
 };
 
 export default getStripe;
+
+//commenter

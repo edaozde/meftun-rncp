@@ -6,3 +6,4 @@ import { Product } from "../interfaces/product.interface";
 export default async function getProducts() {
   return get<Product[]>("products", ["products"]);
 }
+//commenter

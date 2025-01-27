@@ -23,3 +23,5 @@ async function uploadProductImage(productId: number, file: File) {
     headers: getHeaders(),
   });
 }
+
+//commenter

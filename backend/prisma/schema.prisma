@@ -10,42 +10,77 @@ datasource db {
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  email    String    @unique
-  password String
-  role     String    @default("user") // Roles: "user", "admin"
-  products Product[]
-  orders   Order[]
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  role        String    @default("user")
+  cart        Cart?     // Relation 1-1 avec le panier
+  products    Product[] // Produits créés par l'utilisateur
+  orders      Order[]   // Commandes passées
+  createdAt   DateTime  @default(now())
 }
 
+model Cart {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id]) // Lien vers l'utilisateur
+  userId    Int       @unique // 1 utilisateur = 1 panier maximum
+  items     CartItem[] // Articles dans le panier
+  createdAt DateTime  @default(now())
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  cartId    Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  variant   Variant @relation(fields: [variantId], references: [id])
+  variantId Int
+  quantity  Int     @default(1)
+
+  @@unique([cartId, productId, variantId]) // Définit une clé unique
+}
+
+
 model Product {
-  id          Int       @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   description String
   price       Float
-  stock       Int       @default(1)
-  variants    Variant[] // Relation avec les variantes (tailles, couleurs)
-  user        User      @relation(fields: [userId], references: [id])
+  stock       Int         @default(1) // Stock global (optionnel si on gère les variantes)
+  variants    Variant[]   // Variantes disponibles
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  categoryId  Int?        // Catégorie facultative
+  user        User        @relation(fields: [userId], references: [id]) // Vendeur
   userId      Int
-  orderItems  OrderItem[] // Ajout de la relation inverse vers OrderItem
+  orderItems  OrderItem[] // Lien avec les commandes
+  cartItems   CartItem[]  // Lien avec les paniers
+  createdAt   DateTime    @default(now())
 }
 
 model Variant {
   id        Int      @id @default(autoincrement())
-  size      String   // Exemple: "S", "M", "L"
-  color     String   // Exemple: "Rouge", "Noir"
-  stock     Int      @default(0)
+  size      String   // Taille (ex: "S", "M", "L")
+  color     String   // Couleur (ex: "Rouge", "Noir")
+  stock     Int      @default(0) // Stock spécifique à la variante
   product   Product  @relation(fields: [productId], references: [id])
   productId Int
+  cartItems CartItem[] // Lien avec les paniers
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  products  Product[] // Produits de cette catégorie
 }
 
 model Order {
   id          Int         @id @default(autoincrement())
   totalPrice  Float
-  status      String      @default("pending") // Statuts: "pending", "paid", "shipped"
+  status      String      @default("pending") // Statut de la commande
   user        User        @relation(fields: [userId], references: [id])
   userId      Int
-  items       OrderItem[]
+  items       OrderItem[] // Articles commandés
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }

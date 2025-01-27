@@ -9,8 +9,17 @@ export class ProductsService {
   async createProduct(data: CreateProductRequest, userId: number) {
     return this.prismaService.product.create({
       data: {
-        ...data,
-        userId,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        variants: {
+          create: data.variants,
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
   }

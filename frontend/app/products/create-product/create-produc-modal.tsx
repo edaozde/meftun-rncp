@@ -98,7 +98,7 @@ export default function CreateProductModal({
               variant="outlined"
               startIcon={<CloudUploadIcon />}
             >
-              Upload File
+              Charger l'image
               <input
                 type="file"
                 name="image"
@@ -110,7 +110,7 @@ export default function CreateProductModal({
             </Button>
             <Typography>{fileName}</Typography>
             <Button type="submit" variant="contained">
-              Submit
+              Creer
             </Button>
           </Stack>
         </form>

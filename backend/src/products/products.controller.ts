@@ -93,7 +93,7 @@ export class ProductsController {
     );
   }
 
-  // Récupérer toutes les variantes d'un produit
+  // Récupérfer toutes les variantes d'un produit
   @Get(':productId/variants')
   @UseGuards(JwtAuthGuard)
   async getVariants(@Param('productId') productId: string) {
@@ -117,6 +117,7 @@ export class ProductsController {
     return this.productsService.updateVariant(+variantId, body);
   }
 
+  
   // Supprimer une variante
   @Delete('variant/:variantId')
   @UseGuards(JwtAuthGuard)
@@ -124,3 +125,5 @@ export class ProductsController {
     return this.productsService.deleteVariant(+variantId);
   }
 }
+
+//commenter

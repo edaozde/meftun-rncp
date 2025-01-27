@@ -27,3 +27,5 @@ export const get = async <T>(path: string, tags?: string[]) => {
   });
   return res.json() as T;
 };
+
+//commenter
