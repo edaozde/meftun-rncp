@@ -13,7 +13,13 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
 
   // Activation de la validation automatique pour sécuriser les DTO en filtrant les propriétés non souhaitées
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
 
   // Activation du parsing des cookies pour gérer l'authentification et la gestion de session
   app.use(cookieParser());

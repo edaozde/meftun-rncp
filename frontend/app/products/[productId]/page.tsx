@@ -1,182 +1,152 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { Stack, Typography, MenuItem, Select, Button, Box } from "@mui/material";
+import { Stack, Typography, Grid, Chip, Tooltip, Container } from "@mui/material";
+import getProduct from "./get-product";
 import Image from "next/image";
 import { getProductImage } from "../product-image";
-import { post } from "@/app/common/util/fetch";
-import getProduct from "./get-product";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  imageExists: boolean;
-  variants: {
-    id: number;
-    size: string;
-    color: string;
-    stock: number;
-  }[];
-}
+import Checkout from "@/app/checkout/checkout";
 
 interface SingleProductProps {
   params: { productId: string };
 }
 
-export default function SingleProduct({ params }: SingleProductProps) {
-  const [product, setProduct] = useState<Product | null>(null);
-  const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
-  const [availableStock, setAvailableStock] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function SingleProduct({ params }: SingleProductProps) {
+  const product = await getProduct(+params.productId);
 
-  // Chargement du produit
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const data = await getProduct(+params.productId);
-        setProduct(data);
-      } catch (err) {
-        setError("Erreur lors du chargement du produit");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [params.productId]);
-
-  // Gestion des sélections de variantes
-  useEffect(() => {
-    if (product && selectedSize && selectedColor) {
-      const selectedVariant = product.variants.find(
-        (v) => v.size === selectedSize && v.color === selectedColor
-      );
-      setAvailableStock(selectedVariant ? selectedVariant.stock : 0);
-    }
-  }, [selectedSize, selectedColor, product]);
-
-  // Ajout au panier
-  const handleAddToCart = async () => {
-    if (!selectedSize || !selectedColor) {
-      alert("Veuillez sélectionner une taille et une couleur.");
-      return;
-    }
-
-    const selectedVariant = product?.variants.find(
-      (v) => v.size === selectedSize && v.color === selectedColor
-    );
-
-    if (!selectedVariant) {
-      alert("Variante non trouvée");
-      return;
-    }
-
-    try {
-      await post("cart", {
-        productId: product?.id,
-        variantId: selectedVariant.id,
-        quantity: 1,
-      });
-      alert("Produit ajouté au panier !");
-    } catch (error) {
-      console.error(error);
-      alert("Erreur lors de l'ajout au panier");
-    }
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(price);
   };
 
-  if (isLoading) return <Typography>Chargement...</Typography>;
-  if (error) return <Typography color="error">{error}</Typography>;
-  if (!product) return <Typography>Produit non trouvé</Typography>;
+  const uniqueSizes = [...new Set(product.variants?.map(v => v.size))];
+  const uniqueColors = [...new Set(product.variants?.map(v => v.color))];
 
   return (
-    <Box p={4}>
-      <Stack direction={{ xs: "column", md: "row" }} spacing={4}>
-        {/* Image du produit */}
-        {product.imageExists && (
-          <Box flex={1}>
-            <Image
-              src={getProductImage(product.id)}
-              width={500}
-              height={500}
-              alt={product.name}
-              style={{ width: "100%", height: "auto" }}
-              priority
-            />
-          </Box>
-        )}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Grid container spacing={{ xs: 4, md: 6 }}>
+        {/* Section Image */}
+        <Grid item xs={12} md={6}>
+          <div style={{ 
+            position: 'relative',
+            paddingTop: '100%', // Crée un carré responsive
+            backgroundColor: '#f5f5f5',
+            borderRadius: '16px',
+            overflow: 'hidden'
+          }}>
+            {product.imageExists ? (
+              <Image
+                src={getProductImage(product.id)}
+                fill
+                style={{ objectFit: 'contain', padding: '1rem' }}
+                alt={product.name}
+                sizes="(max-width: 600px) 100vw, 50vw"
+                priority
+              />
+            ) : (
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                color: '#666'
+              }}>
+                <Typography>Image non disponible</Typography>
+              </div>
+            )}
+          </div>
+        </Grid>
 
-        {/* Détails du produit */}
-        <Box flex={1}>
-          <Stack spacing={3}>
-            <Typography variant="h3">{product.name}</Typography>
-            <Typography>{product.description}</Typography>
-            <Typography variant="h4" color="primary">
-              ${product.price.toFixed(2)}
+        {/* Section Détails */}
+        <Grid item xs={12} md={6}>
+          <Stack spacing={3} sx={{ height: '100%' }}>
+            {/* En-tête */}
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                lineHeight: 1.2
+              }}
+            >
+              {product.name}
             </Typography>
 
-            {/* Sélection de la taille */}
-            <Select
-              value={selectedSize}
-              onChange={(e) => setSelectedSize(e.target.value)}
-              displayEmpty
-              fullWidth
-              disabled={!product.variants.length}
+            {/* Description */}
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontSize: { xs: '1rem', md: '1.1rem' },
+                color: 'text.secondary'
+              }}
             >
-              <MenuItem value="" disabled>
-                Sélectionnez une taille
-              </MenuItem>
-              {[...new Set(product.variants.map((v) => v.size))].map((size) => (
-                <MenuItem key={size} value={size}>
-                  {size}
-                </MenuItem>
-              ))}
-            </Select>
+              {product.description || "Aucune description disponible"}
+            </Typography>
 
-            {/* Sélection de la couleur */}
-            <Select
-              value={selectedColor}
-              onChange={(e) => setSelectedColor(e.target.value)}
-              displayEmpty
-              fullWidth
-              disabled={!product.variants.length}
-            >
-              <MenuItem value="" disabled>
-                Sélectionnez une couleur
-              </MenuItem>
-              {[...new Set(product.variants.map((v) => v.color))].map((color) => (
-                <MenuItem key={color} value={color}>
-                  {color}
-                </MenuItem>
-              ))}
-            </Select>
-
-            {/* Affichage du stock */}
-            {selectedSize && selectedColor && (
-              <Typography>
-                {availableStock > 0
-                  ? `Stock disponible : ${availableStock}`
-                  : "Rupture de stock"}
-              </Typography>
+            {/* Tailles */}
+            {uniqueSizes.length > 0 && (
+              <div>
+                <Typography variant="h6" gutterBottom>
+                  Tailles disponibles
+                </Typography>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {uniqueSizes.map((size) => (
+                    <Chip
+                      key={size}
+                      label={size}
+                      sx={{ 
+                        backgroundColor: 'primary.light', 
+                        color: 'primary.contrastText',
+                        fontSize: { xs: '0.875rem', md: '1rem' }
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
 
-            {/* Bouton Ajouter au panier */}
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleAddToCart}
-              disabled={!selectedSize || !selectedColor || availableStock === 0}
-              fullWidth
-            >
-              Ajouter au panier
-            </Button>
+            {/* Couleurs */}
+            {uniqueColors.length > 0 && (
+              <div>
+                <Typography variant="h6" gutterBottom>
+                  Couleurs disponibles
+                </Typography>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {uniqueColors.map((color, index) => (
+                    <Tooltip key={index} title={color}>
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          backgroundColor: color,
+                          border: '2px solid #fff',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          cursor: 'pointer'
+                        }}
+                      />
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Prix et Checkout */}
+            <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  fontSize: { xs: '1.5rem', md: '2rem' },
+                  color: 'primary.main',
+                  mb: 2
+                }}
+              >
+                {formatPrice(product.price)}
+              </Typography>
+              <Checkout productId={product.id} />
+            </div>
           </Stack>
-        </Box>
-      </Stack>
-    </Box>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }

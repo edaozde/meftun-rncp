@@ -13,6 +13,10 @@ import {
   ParseFilePipe,
   FileTypeValidator,
   MaxFileSizeValidator,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  BadRequestException,
+  UsePipes,
+  ValidationPipe,  // Ajouté pour appliquer le DTO
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateProductRequest } from './dto/create-product.request';
@@ -30,11 +34,24 @@ export class ProductsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true })) // Applique la validation DTO
   async createProduct(
-    @Body() body: CreateProductRequest,
+    @Body() body: CreateProductRequest, // Utilisation correcte du DTO
     @CurrentUser() user: TokenPayload,
   ) {
     return this.productsService.createProduct(body, user.userId);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getProducts() {
+    return this.productsService.getProducts();
+  }
+
+  @Get(':productId')
+  @UseGuards(JwtAuthGuard)
+  async getProduct(@Param('productId') productId: string) {
+    return this.productsService.getProduct(+productId);
   }
 
   @Post(':productId/image')
@@ -61,69 +78,7 @@ export class ProductsController {
         ],
       }),
     )
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _file: Express.Multer.File,
   ) {}
-
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async getProducts() {
-    return this.productsService.getProducts();
-  }
-
-  @Get(':productId')
-  @UseGuards(JwtAuthGuard)
-  async getProduct(@Param('productId') productId: string) {
-    return this.productsService.getProduct(+productId);
-  }
-
-  // === NOUVEAUX ENDPOINTS POUR LES VARIANTES ===
-
-  // Créer une variante pour un produit
-  @Post(':productId/variant')
-  @UseGuards(JwtAuthGuard)
-  async createVariant(
-    @Param('productId') productId: string,
-    @Body() body: { size: string; color: string; stock: number },
-  ) {
-    return this.productsService.addVariant(
-      +productId,
-      body.size,
-      body.color,
-      body.stock,
-    );
-  }
-
-  // Récupérfer toutes les variantes d'un produit
-  @Get(':productId/variants')
-  @UseGuards(JwtAuthGuard)
-  async getVariants(@Param('productId') productId: string) {
-    return this.productsService.getVariants(+productId);
-  }
-
-  // Récupérer une variante spécifique
-  @Get('variant/:variantId')
-  @UseGuards(JwtAuthGuard)
-  async getVariant(@Param('variantId') variantId: string) {
-    return this.productsService.getVariantById(+variantId);
-  }
-
-  // Mettre à jour une variante
-  @Patch('variant/:variantId')
-  @UseGuards(JwtAuthGuard)
-  async updateVariant(
-    @Param('variantId') variantId: string,
-    @Body() body: Partial<{ size: string; color: string; stock: number }>,
-  ) {
-    return this.productsService.updateVariant(+variantId, body);
-  }
-
-  
-  // Supprimer une variante
-  @Delete('variant/:variantId')
-  @UseGuards(JwtAuthGuard)
-  async deleteVariant(@Param('variantId') variantId: string) {
-    return this.productsService.deleteVariant(+variantId);
-  }
 }
-
-//commenter

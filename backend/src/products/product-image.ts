@@ -5,5 +5,3 @@ export const PRODUCT_IMAGES = join(
   '../../',
   'public/images/products',
 );
-
-//image
