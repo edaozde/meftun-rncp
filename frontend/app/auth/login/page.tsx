@@ -1,12 +1,14 @@
 "use client";
 
-import { Button, Link, Stack, TextField } from "@mui/material";
+import { Button, Link, Stack, TextField, FormControlLabel, Checkbox } from "@mui/material";
 import NextLink from "next/link";
 import { useFormState } from "react-dom";
+import { useState } from "react";
 import login from "./login";
 
 export default function Login() {
   const [state, formAction] = useFormState(login, { error: "" });
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
   return (
     <form action={formAction} className="w-full max-w-xs">
@@ -23,15 +25,19 @@ export default function Login() {
           error={!!state.error}
           helperText={state.error}
           name="password"
-          label="Password"
+          label="Mot de passe"
           variant="outlined"
           type="password"
         />
-        <Button type="submit" variant="contained">
-          Login
+        <FormControlLabel
+          control={<Checkbox checked={acceptedPrivacy} onChange={(e) => setAcceptedPrivacy(e.target.checked)} />} 
+          label="J'accepte la politique de confidentialité"
+        />
+        <Button type="submit" variant="contained" disabled={!acceptedPrivacy}>
+          Se connecter
         </Button>
         <Link component={NextLink} href="/auth/signup" className="self-center">
-          Signup
+          S&apos;inscrire
         </Link>
       </Stack>
     </form>

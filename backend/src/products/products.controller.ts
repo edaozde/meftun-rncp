@@ -13,10 +13,9 @@ import {
   ParseFilePipe,
   FileTypeValidator,
   MaxFileSizeValidator,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BadRequestException,
   UsePipes,
-  ValidationPipe,  // Ajouté pour appliquer le DTO
+  ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateProductRequest } from './dto/create-product.request';
@@ -34,11 +33,32 @@ export class ProductsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UsePipes(new ValidationPipe({ transform: true })) // Applique la validation DTO
+  @UseInterceptors(FileInterceptor('image')) // Permet de traiter FormData correctement
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async createProduct(
-    @Body() body: CreateProductRequest, // Utilisation correcte du DTO
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
     @CurrentUser() user: TokenPayload,
   ) {
+    console.log('🔍 REQUÊTE REÇUE BACKEND:', body);
+    console.log('🔍 Variants avant parsing:', body.variants);
+
+    if (body.variants) {
+      try {
+        body.variants = JSON.parse(body.variants);
+        console.log('✅ Variants après parsing:', body.variants);
+      } catch (error) {
+        console.error('🚨 Erreur de parsing des variants:', error);
+        throw new BadRequestException('Variants must be a valid JSON array');
+      }
+    }
+
+    // ✅ Conversion du prix en float pour éviter l'erreur Prisma
+    body.price = parseFloat(body.price);
+    if (isNaN(body.price)) {
+      throw new BadRequestException('Price must be a valid number');
+    }
+
     return this.productsService.createProduct(body, user.userId);
   }
 
@@ -78,7 +98,6 @@ export class ProductsController {
         ],
       }),
     )
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _file: Express.Multer.File,
   ) {}
 }
