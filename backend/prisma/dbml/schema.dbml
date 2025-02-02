@@ -6,7 +6,7 @@ Table User {
   id Int [pk, increment]
   email String [unique, not null]
   password String [not null]
-  role String [not null, default: 'user']
+  role Role [not null, default: 'USER']
   cart Cart
   products Product [not null]
   orders Order [not null]
@@ -86,6 +86,11 @@ Table OrderItem {
   productId Int [not null]
   order Order [not null]
   orderId Int [not null]
+}
+
+Enum Role {
+  USER
+  ADMIN
 }
 
 Ref: Cart.userId - User.id

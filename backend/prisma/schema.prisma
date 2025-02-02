@@ -13,11 +13,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
 model User {
   id          Int       @id @default(autoincrement())
   email       String    @unique
   password    String
-  role        String    @default("user")
+  role        Role      @default(USER)
   cart        Cart?     // Relation 1-1 avec le panier
   products    Product[] // Produits créés par l'utilisateur
   orders      Order[]   // Commandes passées
