@@ -5,35 +5,27 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
-  FileTypeValidator,
-  MaxFileSizeValidator,
   BadRequestException,
   UsePipes,
   ValidationPipe,
+  UploadedFile,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateProductRequest } from './dto/create-product.request';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ProductsService } from './products.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { TokenPayload } from 'src/auth/token.payload.interface';
-import { PRODUCT_IMAGES } from './product-image';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  // Création d'un produit avec une image
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image')) // Permet de traiter FormData correctement
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async createProduct(
     @UploadedFile() file: Express.Multer.File,
@@ -62,42 +54,39 @@ export class ProductsController {
     return this.productsService.createProduct(body, user.userId);
   }
 
+  // Récupérer tous les produits
   @Get()
   @UseGuards(JwtAuthGuard)
   async getProducts() {
     return this.productsService.getProducts();
   }
 
+  // Récupérer un produit spécifique
   @Get(':productId')
   @UseGuards(JwtAuthGuard)
   async getProduct(@Param('productId') productId: string) {
     return this.productsService.getProduct(+productId);
   }
 
-  @Post(':productId/image')
+  // Supprimer un produit spécifique
+  @Delete(':productId')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: PRODUCT_IMAGES,
-        filename: (req, file, callback) => {
-          callback(
-            null,
-            `${req.params.productId}${extname(file.originalname)}`,
-          );
-        },
-      }),
-    }),
-  )
-  uploadProductImage(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 500000 }),
-          new FileTypeValidator({ fileType: 'image/jpeg' }),
-        ],
-      }),
-    )
-    _file: Express.Multer.File,
-  ) {}
+  async deleteProduct(
+    @Param('productId') productId: string,
+    @CurrentUser() user: TokenPayload, // Récupère l'utilisateur connecté via le décorateur
+  ) {
+    // Appel du service pour supprimer le produit et ses variantes
+    const result = await this.productsService.deleteProduct(
+      +productId,
+      user.userId,
+    );
+
+    if (!result) {
+      throw new BadRequestException(
+        "Produit non trouvé ou vous n'êtes pas autorisé à le supprimer",
+      );
+    }
+
+    return { message: 'Produit supprimé avec succès' };
+  }
 }

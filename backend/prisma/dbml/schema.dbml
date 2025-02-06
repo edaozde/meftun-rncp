@@ -10,6 +10,7 @@ Table User {
   cart Cart
   products Product [not null]
   orders Order [not null]
+  acceptedPrivacyPolicy Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
 }
 

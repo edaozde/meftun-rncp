@@ -14,7 +14,7 @@ export default async function SingleProduct({ params }: SingleProductProps) {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EUR',
       minimumFractionDigits: 2
     }).format(price);
   };
@@ -51,7 +51,7 @@ export default async function SingleProduct({ params }: SingleProductProps) {
                 transform: 'translate(-50%, -50%)',
                 color: '#666'
               }}>
-                <Typography>Image non disponible</Typography>
+                <Typography>Produit</Typography>
               </div>
             )}
           </div>

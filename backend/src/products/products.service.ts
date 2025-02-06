@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateProductRequest } from './dto/create-product.request';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -6,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ProductsService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  // Méthode pour créer un produit
   async createProduct(data: CreateProductRequest, userId: number) {
     try {
       // Conversion des variants si nécessaire
@@ -40,12 +45,14 @@ export class ProductsService {
     }
   }
 
+  // Méthode pour récupérer tous les produits
   async getProducts() {
     return this.prismaService.product.findMany({
       include: { variants: true },
     });
   }
 
+  // Méthode pour récupérer un produit par son ID
   async getProduct(productId: number) {
     try {
       return await this.prismaService.product.findUniqueOrThrow({
@@ -54,7 +61,39 @@ export class ProductsService {
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      throw new NotFoundException(`Product not found with ID ${productId}`);
+      throw new NotFoundException(`Produit non trouvé avec l'ID ${productId}`);
     }
+  }
+
+  // Méthode pour supprimer un produit
+  async deleteProduct(productId: number, userId: number): Promise<boolean> {
+    // Vérifier si le produit existe
+    const product = await this.prismaService.product.findUnique({
+      where: { id: productId },
+      include: { variants: true }, // Inclure les variantes associées
+    });
+
+    if (!product) {
+      throw new BadRequestException('Produit non trouvé');
+    }
+
+    // Vérifier si l'utilisateur est bien le propriétaire du produit
+    if (product.userId !== userId) {
+      throw new BadRequestException(
+        "Vous n'êtes pas autorisé à supprimer ce produit",
+      );
+    }
+
+    // Supprimer les variantes associées au produit avant de supprimer le produit
+    await this.prismaService.variant.deleteMany({
+      where: { productId: productId },
+    });
+
+    // Suppression du produit
+    await this.prismaService.product.delete({
+      where: { id: productId },
+    });
+
+    return true; // Retourne true si la suppression a réussi
   }
 }

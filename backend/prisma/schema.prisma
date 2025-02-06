@@ -25,6 +25,7 @@ model User {
   cart        Cart?     // Relation 1-1 avec le panier
   products    Product[] // Produits créés par l'utilisateur
   orders      Order[]   // Commandes passées
+  acceptedPrivacyPolicy Boolean   @default(false) // ✅ Consentement RGPD
   createdAt   DateTime  @default(now())
 }
 

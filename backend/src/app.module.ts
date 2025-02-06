@@ -7,6 +7,7 @@ import { ProductsModule } from './products/products.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { CheckoutModule } from './checkout/checkout.module';
+import { PinoLogger } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -22,7 +23,10 @@ import { CheckoutModule } from './checkout/checkout.module';
               : {
                   target: 'pino-pretty',
                   options: {
-                    singleLine: true,
+                    colorize: true,
+                    singleLine: false,
+                    translateTime: 'HH:MM:ss Z',
+                    ignore: 'pid,hostname',
                   },
                 },
             level: isProduction ? 'info' : 'debug',
@@ -43,6 +47,8 @@ import { CheckoutModule } from './checkout/checkout.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
-
-//commenter
+export class AppModule {
+  constructor(private readonly logger: PinoLogger) {
+    this.logger.info('🚀 Application NestJS démarrée avec succès !');
+  }
+}

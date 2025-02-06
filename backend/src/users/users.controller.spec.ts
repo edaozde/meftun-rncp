@@ -1,18 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { UsersController } from './users.controller';
+import { IsEmail, IsStrongPassword, IsBoolean } from 'class-validator';
 
-describe('UsersController', () => {
-  let controller: UsersController;
+export class CreateUserRequest {
+  @IsEmail({}, { message: "L'email doit être valide" })
+  email: string;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [UsersController],
-    }).compile();
+  @IsStrongPassword({}, { message: 'Le mot de passe doit être sécurisé' })
+  password: string;
 
-    controller = module.get<UsersController>(UsersController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+  @IsBoolean({ message: 'Vous devez accepter la politique de confidentialité' })
+  acceptedPrivacyPolicy: boolean;
+}

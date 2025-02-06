@@ -62,7 +62,7 @@ export default function Header({ logout }: HeaderProps) {
               textDecoration: "none",
             }}
           >
-            Shoppy
+            MEFTUN
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
@@ -190,7 +190,7 @@ const Settings = ({ logout }: HeaderProps) => {
             handleCloseUserMenu();
           }}
         >
-          <Typography textAlign="center">Logout</Typography>
+          <Typography textAlign="center">Deconnexion</Typography>
         </MenuItem>
       </Menu>
     </Box>

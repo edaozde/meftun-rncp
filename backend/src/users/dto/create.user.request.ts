@@ -6,4 +6,5 @@ export class CreateUserRequest {
 
   @IsStrongPassword()
   password: string;
+  acceptedPrivacyPolicy: any;
 }

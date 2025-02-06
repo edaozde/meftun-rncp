@@ -20,8 +20,6 @@ export class UsersController {
 
   @Post()
   @UseInterceptors(NoFilesInterceptor())
-
-  //par défaut, nestjs retourne code 200
   @HttpCode(201)
   createUser(@Body() request: CreateUserRequest) {
     return this.usersService.createUser(request);

@@ -1,17 +1,17 @@
 export const unauthenticatedRoutes = [
     {
-      title: "Login",
+      title: "Connexion",
       path: "/auth/login",
     },
     {
-      title: "Signup",
+      title: "S'inscrire",
       path: "/auth/signup",
     },
   ];
   
   export const routes = [
     {
-      title: "Home",
+      title: "Acceuil",
       path: "/",
     },
   ];
