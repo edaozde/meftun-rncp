@@ -65,6 +65,7 @@ model Product {
   orderItems  OrderItem[] // Lien avec les commandes
   cartItems   CartItem[]  // Lien avec les paniers
   createdAt   DateTime    @default(now())
+  sold Boolean @default(false) // Produit vendu
 }
 
 model Variant {

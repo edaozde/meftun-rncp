@@ -23,28 +23,55 @@ import createUser from "./create-user";
 import ColorModeSelect from "@/shared-theme/ColorModeSelect";
 import AppTheme from "@/shared-theme/AppTheme";
 
-// Style du formulaire et de la carte
+// ✅ **Fix du Background pour prendre toute la hauteur**
+const FullScreenContainer = styled(Box)(({ theme }) => ({
+  minHeight: "100vh",
+  width: "100vw",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "linear-gradient(135deg, #eef2ff 0%, #d0d7ff 100%)",
+  padding: theme.spacing(2),
+}));
+
+// ✅ **Fix du `Card` pour garder un bon équilibre**
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
-  alignSelf: "center",
+  width: "100%",
+  maxWidth: "400px",
   padding: theme.spacing(4),
   gap: theme.spacing(2),
-  margin: "auto",
-  maxWidth: "450px",
-  boxShadow:
-    "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
-  ...theme.applyStyles("dark", {
-    boxShadow:
-      "hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px",
-  }),
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor: "#fff",
+  boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.1)",
+  transition: "all 0.3s ease",
+  "&:hover": {
+    boxShadow: "0px 12px 30px rgba(0, 0, 0, 0.15)",
+  },
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(3),
+    maxWidth: "90%",
+  },
 }));
 
-const FormContainer = styled(Stack)(({ theme }) => ({
-  minHeight: "100vh",
-  padding: theme.spacing(4),
-  alignItems: "center",
-  justifyContent: "center",
+// ✅ **Fix du bouton pour un effet plus doux**
+const StyledButton = styled(Button)(({ theme }) => ({
+  background: "#2D7DD2",
+  color: "#FFFFFF",
+  padding: theme.spacing(1.5),
+  fontSize: "1rem",
+  fontWeight: 600,
+  textTransform: "none",
+  transition: "background 0.3s ease, transform 0.2s ease",
+  "&:hover": {
+    background: "#205F9F",
+    transform: "scale(1.02)",
+  },
+  "&:disabled": {
+    background: "#B0B0B0",
+    color: "#FFFFFF",
+  },
 }));
 
 export default function Signup(props: { disableCustomTheme?: boolean }) {
@@ -55,12 +82,31 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <ColorModeSelect sx={{ position: "fixed", top: "1rem", right: "1rem" }} />
-      <FormContainer>
+      <FullScreenContainer>
         <Card variant="outlined">
-          <Typography component="h1" variant="h4" align="center">
+          <Typography
+            component="h1"
+            variant="h4"
+            sx={{
+              textAlign: "center",
+              fontSize: "clamp(2rem, 10vw, 2.25rem)",
+              fontWeight: "bold",
+            }}
+          >
             Inscription
           </Typography>
-          <Box component="form" action={formAction} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+
+          <Box
+            component="form"
+            action={formAction}
+            noValidate
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              gap: 2,
+            }}
+          >
             <FormControl>
               <TextField
                 name="email"
@@ -87,23 +133,60 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                 helperText={state.error}
               />
             </FormControl>
+
             <FormControlLabel
-              control={<Checkbox checked={acceptedPrivacy} onChange={(e) => setAcceptedPrivacy(e.target.checked)} />}
-              label="J'accepte la politique de confidentialité"
+              control={
+                <Checkbox
+                  checked={acceptedPrivacy}
+                  onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  J’accepte les{" "}
+                  <Link href="/terms-and-conditions" target="_blank">
+                    Termes et Conditions
+                  </Link>
+                  .
+                </Typography>
+              }
             />
-            <Button type="submit" fullWidth variant="contained" disabled={!acceptedPrivacy}>
-              S'inscrire
-            </Button>
+
+            <Stack spacing={2}>
+              <StyledButton type="submit" fullWidth disabled={!acceptedPrivacy}>
+              S&apos;inscrire
+              </StyledButton>
+
+              <Button
+                component={NextLink}
+                href="/auth/login"
+                variant="outlined"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Se connecter
+              </Button>
+            </Stack>
           </Box>
-          <Divider />
-          <Typography align="center">
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography sx={{ textAlign: "center", fontSize: "0.9rem" }}>
             Déjà un compte ?{" "}
-            <Link component={NextLink} href="/auth/login">
+            <Link
+              component={NextLink}
+              href="/auth/login"
+              variant="body2"
+              sx={{ fontWeight: "bold" }}
+            >
               Se connecter
             </Link>
           </Typography>
         </Card>
-      </FormContainer>
+      </FullScreenContainer>
     </AppTheme>
   );
 }

@@ -9,7 +9,6 @@ import {
   CssBaseline,
   Divider,
   FormControlLabel,
-  FormLabel,
   FormControl,
   Link,
   TextField,
@@ -21,49 +20,56 @@ import { styled } from "@mui/material/styles";
 import NextLink from "next/link";
 import { useFormState } from "react-dom";
 import login from "./login";
-import ColorModeSelect from "@/shared-theme/ColorModeSelect";
 import AppTheme from "@/shared-theme/AppTheme";
 
-// Adaptation du style de la carte
+// ✅ **Background optimisé pour un meilleur rendu**
+const FullScreenContainer = styled(Box)(({ theme }) => ({
+  minHeight: "100vh",
+  width: "100vw",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "linear-gradient(135deg, #eef2ff 0%, #d0d7ff 100%)",
+  padding: theme.spacing(2),
+}));
+
+// ✅ **Fix du `Card` pour un bon équilibre**
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
-  alignSelf: "center",
   width: "100%",
+  maxWidth: "400px",
   padding: theme.spacing(4),
   gap: theme.spacing(2),
-  margin: "auto",
-  [theme.breakpoints.up("sm")]: {
-    maxWidth: "450px",
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor: "#fff",
+  boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.1)",
+  transition: "all 0.3s ease",
+  "&:hover": {
+    boxShadow: "0px 12px 30px rgba(0, 0, 0, 0.15)",
   },
-  boxShadow:
-    "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
-  ...theme.applyStyles("dark", {
-    boxShadow:
-      "hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px",
-  }),
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(3),
+    maxWidth: "90%",
+  },
 }));
 
-const SignInContainer = styled(Stack)(({ theme }) => ({
-  height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
-  minHeight: "100%",
-  padding: theme.spacing(2),
-  [theme.breakpoints.up("sm")]: {
-    padding: theme.spacing(4),
+// ✅ **Amélioration du bouton pour meilleure lisibilité**
+const StyledButton = styled(Button)(({ theme }) => ({
+  background: "#2D7DD2",
+  color: "#FFFFFF",
+  padding: theme.spacing(1.5),
+  fontSize: "1rem",
+  fontWeight: 600,
+  textTransform: "none",
+  transition: "background 0.3s ease, transform 0.2s ease",
+  "&:hover": {
+    background: "#205F9F",
+    transform: "scale(1.02)",
   },
-  "&::before": {
-    content: '""',
-    display: "block",
-    position: "absolute",
-    zIndex: -1,
-    inset: 0,
-    backgroundImage:
-      "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
-    backgroundRepeat: "no-repeat",
-    ...theme.applyStyles("dark", {
-      backgroundImage:
-        "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
-    }),
+  "&:disabled": {
+    background: "#7A7A7A", // ✅ Gris plus foncé pour accessibilité
+    color: "#FFFFFF",
   },
 }));
 
@@ -74,13 +80,16 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
-      <SignInContainer direction="column" justifyContent="space-between">
-        <ColorModeSelect sx={{ position: "fixed", top: "1rem", right: "1rem" }} />
+      <FullScreenContainer>
         <Card variant="outlined">
           <Typography
             component="h1"
             variant="h4"
-            sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
+            sx={{
+              textAlign: "center",
+              fontSize: "clamp(2rem, 10vw, 2.25rem)",
+              fontWeight: "bold",
+            }}
           >
             Connexion
           </Typography>
@@ -96,53 +105,88 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
             }}
           >
             <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
               <TextField
-                error={!!state.error}
-                helperText={state.error}
-                id="email"
-                type="email"
                 name="email"
-                placeholder="your@email.com"
+                label="Email"
+                variant="outlined"
+                type="email"
                 autoComplete="email"
-                autoFocus
                 required
                 fullWidth
-                variant="outlined"
+                error={!!state.error}
+                helperText={state.error}
               />
             </FormControl>
             <FormControl>
-              <FormLabel htmlFor="password">Mot de passe</FormLabel>
               <TextField
-                error={!!state.error}
-                helperText={state.error}
                 name="password"
-                placeholder="••••••"
+                label="Mot de passe"
+                variant="outlined"
                 type="password"
-                id="password"
                 autoComplete="current-password"
                 required
                 fullWidth
-                variant="outlined"
+                error={!!state.error}
+                helperText={state.error}
               />
             </FormControl>
+
+            {/* ✅ Checkbox "J'accepte les termes et conditions" */}
             <FormControlLabel
-              control={<Checkbox checked={acceptedPrivacy} onChange={(e) => setAcceptedPrivacy(e.target.checked)} />}
-              label="J'accepte la politique de confidentialité"
+              control={
+                <Checkbox
+                  checked={acceptedPrivacy}
+                  onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  J’accepte les{" "}
+                  <Link href="/terms-and-conditions" target="_blank" sx={{ color: "#1E5EA8", fontWeight: "bold" }}>
+                    Termes et Conditions
+                  </Link>
+                  .
+                </Typography>
+              }
             />
-            <Button type="submit" fullWidth variant="contained" disabled={!acceptedPrivacy}>
-              Se connecter
-            </Button>
+
+            {/* ✅ Stack pour bien aligner les boutons */}
+            <Stack spacing={2}>
+              <StyledButton type="submit" fullWidth disabled={!acceptedPrivacy}>
+                Se connecter
+              </StyledButton>
+
+              {/* ✅ Bouton d'inscription sous "Se connecter" */}
+              <Button
+                component={NextLink}
+                href="/auth/signup"
+                variant="outlined"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                S&apos;inscrire
+              </Button>
+            </Stack>
           </Box>
-          <Divider />
-          <Typography sx={{ textAlign: "center" }}>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography sx={{ textAlign: "center", fontSize: "0.9rem" }}>
             Pas encore de compte ?{" "}
-            <Link component={NextLink} href="/auth/signup" variant="body2" sx={{ alignSelf: "center" }}>
-              Sinscrire
+            <Link
+              component={NextLink}
+              href="/auth/signup"
+              variant="body2"
+              sx={{ fontWeight: "bold", color: "#1E5EA8" }}
+            >
+              Inscription
             </Link>
           </Typography>
         </Card>
-      </SignInContainer>
+      </FullScreenContainer>
     </AppTheme>
   );
 }

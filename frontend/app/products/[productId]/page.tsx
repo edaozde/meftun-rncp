@@ -23,7 +23,7 @@ export default async function SingleProduct({ params }: SingleProductProps) {
   const uniqueColors = [...new Set(product.variants?.map(v => v.color))];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 12 }}> {/* Ajout de padding top pour éviter le chevauchement */}
       <Grid container spacing={{ xs: 4, md: 6 }}>
         {/* Section Image */}
         <Grid item xs={12} md={6}>
@@ -49,9 +49,10 @@ export default async function SingleProduct({ params }: SingleProductProps) {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                color: '#666'
+                color: '#666',
+                textAlign: 'center'
               }}>
-                <Typography>Produit</Typography>
+                <Typography variant="h6">Image non disponible</Typography>
               </div>
             )}
           </div>
@@ -94,8 +95,9 @@ export default async function SingleProduct({ params }: SingleProductProps) {
                       key={size}
                       label={size}
                       sx={{ 
-                        backgroundColor: 'primary.light', 
-                        color: 'primary.contrastText',
+                        backgroundColor: '#D0D7FF', // Bleu plus accessible
+                        color: '#2D7DD2',
+                        fontWeight: 'bold',
                         fontSize: { xs: '0.875rem', md: '1rem' }
                       }}
                     />
@@ -117,9 +119,9 @@ export default async function SingleProduct({ params }: SingleProductProps) {
                         style={{
                           width: '40px',
                           height: '40px',
-                          borderRadius: '50%',
+                          borderRadius: '8px', // Rendre carré comme tu voulais
                           backgroundColor: color,
-                          border: '2px solid #fff',
+                          border: '2px solid #ddd',
                           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                           cursor: 'pointer'
                         }}
@@ -136,7 +138,8 @@ export default async function SingleProduct({ params }: SingleProductProps) {
                 variant="h4" 
                 sx={{ 
                   fontSize: { xs: '1.5rem', md: '2rem' },
-                  color: 'primary.main',
+                  color: '#2D7DD2',
+                  fontWeight: 'bold',
                   mb: 2
                 }}
               >

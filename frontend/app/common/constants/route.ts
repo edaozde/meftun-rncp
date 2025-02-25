@@ -1,19 +1,21 @@
 export const unauthenticatedRoutes = [
-    {
-      title: "Connexion",
-      path: "/auth/login",
-    },
-    {
-      title: "S'inscrire",
-      path: "/auth/signup",
-    },
-  ];
-  
-  export const routes = [
-    {
-      title: "Acceuil",
-      path: "/",
-    },
-  ];
-  
-  //commenter
+  {
+    title: "Connexion",
+    path: "/auth/login",
+  },
+  {
+    title: "S&apos;inscrire",
+    path: "/auth/signup",
+  },
+];
+
+export const routes = [
+  {
+    title: "Accueil",
+    path: "/",
+  },
+  {
+    title: "Dashboard",
+    path: "admin/dashboard", // ✅ Ajout du Dashboard
+  },
+];

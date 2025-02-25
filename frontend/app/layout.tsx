@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Container, CssBaseline } from "@mui/material";
 import Header from "./header/header";
+import Footer from "./footer/footer";
 import Providers from "./providers";
 import authenticated from "./auth/authenticated";
 import logout from "./auth/logout";
+import { Box, CssBaseline } from "@mui/material";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,18 +17,40 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   const isAuthenticated = await authenticated();
 
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="fr">
+      <body
+        className={inter.className}
+        style={{
+          margin: 0,
+          padding: 0,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh", // ✅ Assure que tout prend bien la hauteur complète
+        }}
+      >
         <Providers authenticated={isAuthenticated}>
           <CssBaseline />
           <Header logout={logout} />
-          <Container>{children}</Container>
+
+          {/* ✅ Le container principal grandit pour pousser le footer en bas */}
+          <Box
+            sx={{
+              flex: "1", // ✅ Permet au contenu de prendre toute la place dispo
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              paddingTop: "64px", // ✅ Pour éviter que le contenu touche le header
+            }}
+          >
+            {children}
+          </Box>
+
+          <Footer /> {/* ✅ Le footer reste bien en bas */}
         </Providers>
       </body>
     </html>

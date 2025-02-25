@@ -1,4 +1,3 @@
-
 "use client";
 
 import AppBar from "@mui/material/AppBar";
@@ -19,16 +18,36 @@ import { MouseEvent, useContext, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { routes, unauthenticatedRoutes } from "../common/constants/route";
+import { styled } from "@mui/material/styles";
 
-interface HeaderProps {
-  logout: () => Promise<void>;
-}
+// ✅ **Fix du Header - Couleurs et Responsive**
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  backgroundColor: "#1E3A8A", // ✅ Bleu foncé élégant
+  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+  position: "fixed", // ✅ Fixe le header pour éviter le trou blanc
+  top: 0,
+  width: "100%",
+  zIndex: theme.zIndex.drawer + 1,
+}));
 
-export default function Header({ logout }: HeaderProps) {
+const NavButton = styled(Button)(({ theme }) => ({
+  textTransform: "none",
+  fontWeight: "bold",
+  fontSize: "1rem",
+  color: "#FFFFFF",
+  transition: "color 0.3s ease, transform 0.2s ease",
+  "&:hover": {
+    color: "#FACC15", // ✅ Jaune doré pour contraste
+    transform: "scale(1.05)",
+  },
+}));
+
+export default function Header({ logout }: { logout: () => Promise<void> }) {
   const isAuthenticated = useContext(AuthContext);
   const router = useRouter();
 
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+  const pages = isAuthenticated ? routes : unauthenticatedRoutes;
 
   const handleOpenNavMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -38,15 +57,12 @@ export default function Header({ logout }: HeaderProps) {
     setAnchorElNav(null);
   };
 
-  const pages = isAuthenticated ? routes : unauthenticatedRoutes ;
-
   return (
-    <AppBar position="static">
+    <StyledAppBar>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <ShoppingBasketIcon
-            sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
-          />
+          {/* ✅ Logo à gauche */}
+          <ShoppingBasketIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1, color: "white" }} />
           <Typography
             variant="h6"
             noWrap
@@ -57,18 +73,21 @@ export default function Header({ logout }: HeaderProps) {
               display: { xs: "none", md: "flex" },
               fontFamily: "monospace",
               fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
+              letterSpacing: ".2rem",
+              color: "white",
               textDecoration: "none",
+              transition: "color 0.3s ease",
+              "&:hover": { color: "#FACC15" },
             }}
           >
             MEFTUN
           </Typography>
 
+          {/* ✅ Menu Burger sur mobile */}
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
-              aria-label="account of current user"
+              aria-label="Menu"
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
@@ -79,20 +98,12 @@ export default function Header({ logout }: HeaderProps) {
             <Menu
               id="menu-appbar"
               anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
               keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
-              sx={{
-                display: { xs: "block", md: "none" },
-              }}
+              sx={{ display: { xs: "block", md: "none" } }}
             >
               {pages.map((page) => (
                 <MenuItem
@@ -107,49 +118,32 @@ export default function Header({ logout }: HeaderProps) {
               ))}
             </Menu>
           </Box>
-          <ShoppingBasketIcon
-            sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
-          />
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            MEFTUN
-          </Typography>
+
+          {/* ✅ Liens Navbar */}
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages.map((page) => (
-              <Button
+              <NavButton
                 key={page.title}
                 onClick={() => {
                   router.push(page.path);
                   handleCloseNavMenu();
                 }}
-                sx={{ my: 2, color: "white", display: "block" }}
               >
                 {page.title}
-              </Button>
+              </NavButton>
             ))}
           </Box>
+
+          {/* ✅ Menu Profil utilisateur */}
           {isAuthenticated && <Settings logout={logout} />}
         </Toolbar>
       </Container>
-    </AppBar>
+    </StyledAppBar>
   );
 }
 
-const Settings = ({ logout }: HeaderProps) => {
+// ✅ **Fix du menu utilisateur**
+const Settings = ({ logout }: { logout: () => Promise<void> }) => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -162,24 +156,18 @@ const Settings = ({ logout }: HeaderProps) => {
 
   return (
     <Box sx={{ flexGrow: 0 }}>
-      <Tooltip title="Open settings">
+      <Tooltip title="Paramètres">
         <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-          <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+          <Avatar alt="Profil" src="/static/images/avatar/2.jpg" />
         </IconButton>
       </Tooltip>
       <Menu
         sx={{ mt: "45px" }}
         id="menu-appbar"
         anchorEl={anchorElUser}
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
         keepMounted
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
         open={Boolean(anchorElUser)}
         onClose={handleCloseUserMenu}
       >
@@ -190,7 +178,7 @@ const Settings = ({ logout }: HeaderProps) => {
             handleCloseUserMenu();
           }}
         >
-          <Typography textAlign="center">Deconnexion</Typography>
+          <Typography textAlign="center">Déconnexion</Typography>
         </MenuItem>
       </Menu>
     </Box>

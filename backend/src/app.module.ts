@@ -8,6 +8,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { CheckoutModule } from './checkout/checkout.module';
 import { PinoLogger } from 'nestjs-pino';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { PinoLogger } from 'nestjs-pino';
     AuthModule,
     ProductsModule,
     CheckoutModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [],

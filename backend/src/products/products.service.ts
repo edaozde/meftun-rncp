@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateProductRequest } from './dto/create-product.request';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
@@ -63,6 +64,13 @@ export class ProductsService {
     } catch (err) {
       throw new NotFoundException(`Produit non trouvé avec l'ID ${productId}`);
     }
+  }
+  async update(productId: number, data: Prisma.ProductUpdateInput) {
+    return this.prismaService.product.update({
+      where: { id: productId },
+      data,
+      include: { variants: true },
+    });
   }
 
   // Méthode pour supprimer un produit

@@ -5,7 +5,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
 import CreateProductModal from './create-produc-modal';
 
-//commenter
+
 export default function CreateProductFab() {
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -15,11 +15,22 @@ export default function CreateProductFab() {
         open={modalVisible}
         handleClose={() => setModalVisible(false)}
       />
-      <div className="absolute left-10 bottom-10">
-        <Fab color="primary" onClick={() => setModalVisible(true)}>
-          <AddIcon />
-        </Fab>
-      </div>
+      <Fab
+        color="primary"
+        onClick={() => setModalVisible(true)}
+        sx={{
+          position: "center",
+          bottom: 30,
+          right: 16, // ✅ Positionné en bas à droite comme sur les standards UI
+          boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+          transition: "transform 0.2s ease-in-out",
+          "&:hover": {
+            transform: "scale(1.1)",
+          },
+        }}
+      >
+        <AddIcon />
+      </Fab>
     </>
   );
 }

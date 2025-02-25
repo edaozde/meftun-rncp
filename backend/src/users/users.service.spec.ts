@@ -12,7 +12,6 @@ jest.mock('bcrypt', () => ({
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prismaService: PrismaService;
 
   // On définit un objet mock pour PrismaService
   const mockPrisma = {

@@ -1,10 +1,14 @@
-import { IsEmail, IsStrongPassword } from 'class-validator';
+import { IsEmail, IsStrongPassword, IsBoolean } from 'class-validator';
 
 export class CreateUserRequest {
-  @IsEmail()
+  @IsEmail({}, { message: "L'email doit être valide" })
   email: string;
 
   @IsStrongPassword()
   password: string;
-  acceptedPrivacyPolicy: any;
+
+  @IsBoolean({
+    message: 'Vous devez accepter la politique de confidentialité.',
+  })
+  acceptedPrivacyPolicy: boolean;
 }

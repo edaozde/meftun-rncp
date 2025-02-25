@@ -8,18 +8,44 @@ import {
   Chip,
   Skeleton,
   Tooltip,
+  IconButton,
+  Box
 } from "@mui/material";
 import { Product as IProduct } from "./interfaces/product.interface";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { styled } from "@mui/material/styles";
 import { API_URL } from "../common/constants/api";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+// ✅ **Styles pour les cartes**
+const ProductCard = styled(Card)(({ theme }) => ({
+  backgroundColor: "#fff",
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+  transition: "all 0.3s ease",
+  height: "100%", 
+  display: "flex",
+  flexDirection: "column",
+  "&:hover": {
+    boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.15)",
+  },
+}));
+
+const StyledPrice = styled(Typography)(({ theme }) => ({
+  fontWeight: "bold",
+  fontSize: "1.2rem",
+  color: "#2D7DD2",
+}));
 
 interface ProductProps {
   product: IProduct;
+  onDelete: (id: string) => void; // Fonction pour supprimer un produit
 }
 
-export default function Product({ product }: ProductProps) {
+export default function Product({ product, onDelete }: ProductProps) {
   const router = useRouter();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -33,113 +59,127 @@ export default function Product({ product }: ProductProps) {
     const colorCount = new Set(product.variants.map((v) => v.color)).size;
 
     return (
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={1}>
           {sizeCount > 0 && (
             <Chip
               label={`${sizeCount} taille${sizeCount > 1 ? "s" : ""}`}
               size="small"
-              className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300"
+              sx={{
+                backgroundColor: "#D0D7FF",
+                color: "#2D7DD2",
+                fontWeight: 600,
+              }}
             />
           )}
           {colorCount > 0 && (
             <Chip
               label={`${colorCount} couleur${colorCount > 1 ? "s" : ""}`}
               size="small"
-              className="bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300"
+              sx={{
+                backgroundColor: "#FFEBE8",
+                color: "#E63946",
+                fontWeight: 600,
+              }}
             />
           )}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {product.variants.slice(0, 5).map((variant, index) => (
-            <Tooltip key={index} title={variant.color} arrow>
-              <div
-                className="w-6 h-6 rounded-full border"
-                style={{
-                  backgroundColor: isValidColor(variant.color)
-                    ? variant.color
-                    : "#fff",
-                  borderColor: isValidColor(variant.color)
-                    ? variant.color
-                    : "#666",
-                }}
-              />
-            </Tooltip>
-          ))}
-          {product.variants.length > 5 && (
-            <span className="text-gray-500 dark:text-gray-400">
-              +{product.variants.length - 5} autres
-            </span>
-          )}
-        </div>
-      </div>
+        </Stack>
+      </Stack>
     );
   };
 
   return (
-    // Wrapper modifié pour occuper exactement la hauteur de l'écran sans débordement
-    <div className="flex justify-center items-center h-screen overflow-hidden">
-      <div className="w-full max-w-md">
-        <CardActionArea
-          onClick={() => router.push(`/products/${product.id}`)}
-          className="focus:ring-2 focus:ring-primary-main dark:focus:ring-primary-light"
-        >
-          <Card className="bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-            <Stack spacing={2} className="p-4">
-              <Typography variant="h6" component="h2">
-                {product.name}
-              </Typography>
+    <ProductCard>
+      {/* ✅ Ajout des boutons Modifier et Supprimer en haut */}
+      <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
+        <Tooltip title="Modifier">
+          <IconButton onClick={() => router.push(`/products/edit/${product.id}`)} color="primary">
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
 
-              <div className="relative aspect-square bg-gray-50 dark:bg-gray-700 rounded-lg">
-                {product.imageExists && !imageError ? (
-                  <>
-                    {imageLoading && (
-                      <Skeleton
-                        variant="rectangular"
-                        width="100%"
-                        height="100%"
-                      />
-                    )}
-                    <Image
-                      src={`${API_URL}/products/${product.id}.jpg`}
-                      fill
-                      className="object-cover"
-                      sizes="100vw"
-                      alt="Picture of the product"
-                      onError={() => setImageError(true)}
-                      onLoadingComplete={() => setImageLoading(false)}
-                    />
-                  </>
-                ) : (
-                  <Typography className="text-gray-500 dark:text-gray-400">
-                    Image non disponible
-                  </Typography>
+        <Tooltip title="Supprimer">
+          <IconButton onClick={() => onDelete(product.id)} color="error">
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+
+      <CardActionArea
+        onClick={() => router.push(`/products/edit/${product.id}`)} 
+        sx={{ padding: "16px", height: "100%" }}
+      >
+        <Stack spacing={2} sx={{ height: "100%", justifyContent: "space-between" }}>
+          <Typography variant="h6" fontWeight="bold">
+            {product.name}
+          </Typography>
+
+          {/* ✅ Image bien carrée et responsive */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              paddingTop: "100%",
+              backgroundColor: "#F0F0F0",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            {product.imageExists && !imageError ? (
+              <>
+                {imageLoading && (
+                  <Skeleton
+                    variant="rectangular"
+                    width="100%"
+                    height="100%"
+                    sx={{ position: "absolute", top: 0, left: 0 }}
+                  />
                 )}
-              </div>
-
+                <Image
+                  src={`${API_URL}/products/${product.id}.jpg`}
+                  alt={`Image de ${product.name}`}
+                  layout="fill"
+                  objectFit="cover"
+                  onError={() => setImageError(true)}
+                  onLoadingComplete={() => setImageLoading(false)}
+                />
+              </>
+            ) : (
               <Typography
-                variant="body2"
-                className="text-gray-600 dark:text-gray-300"
+                sx={{
+                  textAlign: "center",
+                  color: "#666",
+                  paddingTop: "45%",
+                  position: "absolute",
+                  width: "100%",
+                }}
               >
-                {product.description || "Aucune description disponible"}
+                Image non disponible
               </Typography>
+            )}
+          </div>
 
-              {variantsSummary()}
+          <Typography variant="body2" color="textSecondary">
+            {product.description || "Aucune description disponible"}
+          </Typography>
 
-              <Typography
-                variant="h6"
-                className="font-bold text-primary-main dark:text-primary-light"
-              >
-                {new Intl.NumberFormat("fr-FR", {
-                  style: "currency",
-                  currency: "EUR",
-                  minimumFractionDigits: 2,
-                }).format(product.price)}
-              </Typography>
-            </Stack>
-          </Card>
-        </CardActionArea>
-      </div>
-    </div>
+          {variantsSummary()}
+
+          {/* ✅ Badge Stock faible */}
+          {product.variants.some((v) => v.stock < 5) && (
+            <Chip label="Stock Faible" color="error" size="small" sx={{ fontWeight: 600 }} />
+          )}
+
+          {/* ✅ Prix bien visible et attractif */}
+          <StyledPrice>
+            {new Intl.NumberFormat("fr-FR", {
+              style: "currency",
+              currency: "EUR",
+              minimumFractionDigits: 2,
+            }).format(product.price)}
+          </StyledPrice>
+        </Stack>
+      </CardActionArea>
+    </ProductCard>
   );
 }

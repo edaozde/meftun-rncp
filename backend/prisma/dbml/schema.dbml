@@ -51,6 +51,7 @@ Table Product {
   orderItems OrderItem [not null]
   cartItems CartItem [not null]
   createdAt DateTime [default: `now()`, not null]
+  sold Boolean [not null, default: false]
 }
 
 Table Variant {
