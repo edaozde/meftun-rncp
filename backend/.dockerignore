@@ -1,0 +1,3 @@
+# 📦 Dépendances Node.js (seront installées dans le conteneur)
+node_modules
+.git

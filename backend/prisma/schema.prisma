@@ -1,7 +1,6 @@
-// schema.prisma
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
 }
 
 generator dbml {
@@ -13,93 +12,93 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-}
 model User {
-  id          Int       @id @default(autoincrement())
-  email       String    @unique
-  password    String
-  role        Role      @default(USER)
-  cart        Cart?     // Relation 1-1 avec le panier
-  products    Product[] // Produits créés par l'utilisateur
-  orders      Order[]   // Commandes passées
-  acceptedPrivacyPolicy Boolean   @default(false) // ✅ Consentement RGPD
-  createdAt   DateTime  @default(now())
+  id                    Int       @id @default(autoincrement())
+  email                 String    @unique
+  password              String
+  createdAt             DateTime  @default(now())
+  role                  Role      @default(USER)
+  acceptedPrivacyPolicy Boolean   @default(false)
+  cart                  Cart?
+  orders                Order[]
+  products              Product[]
 }
 
 model Cart {
-  id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id]) // Lien vers l'utilisateur
-  userId    Int       @unique // 1 utilisateur = 1 panier maximum
-  items     CartItem[] // Articles dans le panier
-  createdAt DateTime  @default(now())
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
 }
 
 model CartItem {
   id        Int     @id @default(autoincrement())
-  cart      Cart    @relation(fields: [cartId], references: [id])
   cartId    Int
-  product   Product @relation(fields: [productId], references: [id])
   productId Int
-  variant   Variant @relation(fields: [variantId], references: [id])
   variantId Int
   quantity  Int     @default(1)
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+  variant   Variant @relation(fields: [variantId], references: [id])
 
-  @@unique([cartId, productId, variantId]) // Définit une clé unique
+  @@unique([cartId, productId, variantId])
 }
-
 
 model Product {
   id          Int         @id @default(autoincrement())
   name        String
   description String
   price       Float
-  stock       Int         @default(1) // Stock global (optionnel si on gère les variantes)
-  variants    Variant[]   // Variantes disponibles
-  category    Category?   @relation(fields: [categoryId], references: [id])
-  categoryId  Int?        // Catégorie facultative
-  user        User        @relation(fields: [userId], references: [id]) // Vendeur
   userId      Int
-  orderItems  OrderItem[] // Lien avec les commandes
-  cartItems   CartItem[]  // Lien avec les paniers
+  stock       Int         @default(1)
+  categoryId  Int?
   createdAt   DateTime    @default(now())
-  sold Boolean @default(false) // Produit vendu
+  sold        Boolean     @default(false)
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  variants    Variant[]
 }
 
 model Variant {
-  id        Int      @id @default(autoincrement())
-  size      String   // Taille (ex: "S", "M", "L")
-  color     String   // Couleur (ex: "Rouge", "Noir")
-  stock     Int      @default(0) // Stock spécifique à la variante
-  product   Product  @relation(fields: [productId], references: [id])
+  id        Int        @id @default(autoincrement())
+  size      String
+  color     String
+  stock     Int        @default(0)
   productId Int
-  cartItems CartItem[] // Lien avec les paniers
+  cartItems CartItem[]
+  product   Product    @relation(fields: [productId], references: [id])
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  products  Product[] // Produits de cette catégorie
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[]
 }
 
 model Order {
-  id          Int         @id @default(autoincrement())
-  totalPrice  Float
-  status      String      @default("pending") // Statut de la commande
-  user        User        @relation(fields: [userId], references: [id])
-  userId      Int
-  items       OrderItem[] // Articles commandés
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id         Int         @id @default(autoincrement())
+  totalPrice Float
+  status     String      @default("pending")
+  userId     Int
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation(fields: [userId], references: [id])
+  items      OrderItem[]
 }
 
 model OrderItem {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   quantity  Int
-  product   Product  @relation(fields: [productId], references: [id])
   productId Int
-  order     Order    @relation(fields: [orderId], references: [id])
   orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
 }

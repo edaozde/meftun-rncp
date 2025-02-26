@@ -141,7 +141,7 @@ export default function CreateProductModal({
                 <TextField label="Size" variant="outlined" required value={variant.size} onChange={(e) => updateVariant(index, "size", e.target.value)} />
                 <TextField label="Color" variant="outlined" required value={variant.color} onChange={(e) => updateVariant(index, "color", e.target.value)} />
                 <TextField label="Stock" type="number" variant="outlined" required value={variant.stock} onChange={(e) => updateVariant(index, "stock", parseInt(e.target.value, 10) || 0)} />
-                <Button variant="text" color="error" onClick={() => removeVariant(index)}>Remove</Button>
+                <Button variant="text" color="error" onClick={() => removeVariant(index)}>Supprimer</Button>
               </Stack>
             ))}
             <Button onClick={addVariant} variant="outlined">Add Variant</Button>

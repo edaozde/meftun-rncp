@@ -50,7 +50,7 @@ export default async function RootLayout({
             {children}
           </Box>
 
-          <Footer /> {/* ✅ Le footer reste bien en bas */}
+          <Footer /> 
         </Providers>
       </body>
     </html>

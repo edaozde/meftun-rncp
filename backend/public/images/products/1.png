@@ -1,0 +1,17 @@
+digraph "Conceptual Diagram" {
+	rankdir=LR
+	User [label=User]
+	Product [label=Product]
+	Order [label=Order]
+	Cart [label=Cart]
+	Payment [label=Payment]
+	File [label=File]
+	User -> Order [label=places]
+	User -> Cart [label=has]
+	Order -> Product [label=includes]
+	Product -> Cart [label=in]
+	Order -> Payment [label=has]
+	Product -> File [label=has]
+	User -> File [label=has]
+	dpi=300
+}

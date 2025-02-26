@@ -11,11 +11,15 @@ export const unauthenticatedRoutes = [
 
 export const routes = [
   {
-    title: "Accueil",
+    title: "Produits",
     path: "/",
   },
   {
     title: "Dashboard",
     path: "admin/dashboard", // ✅ Ajout du Dashboard
   },
+  {
+    title: "Clients",
+    path: "admin/clients",
+  }
 ];

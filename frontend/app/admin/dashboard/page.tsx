@@ -86,7 +86,7 @@ export default function AdminDashboard() {
           display: "block",
           mx: "auto",
         }}
-        onClick={() => router.push("/products")}
+        onClick={() => router.push("/")}
       >
         ➜ Gérer les Produits
       </Button>
