@@ -26,9 +26,9 @@ jobs:
         working-directory: backend
         run: npm install
 
-      - name: Exécuter les tests unitaires du backend
+      - name: Exécuter les tests unitaires et générer la couverture
         working-directory: backend
-        run: npm test || echo "Aucun test pour l'instant"
+        run: npm run test:cov
 
       - name: Construire l’image Docker
         working-directory: backend
