@@ -45,6 +45,7 @@ export class AuthService {
         throw new UnauthorizedException();
       }
       return user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       throw new UnauthorizedException('Credentials are not valid.');
     }

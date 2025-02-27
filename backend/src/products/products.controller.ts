@@ -68,6 +68,7 @@ export class ProductsController {
     return this.productsService.getProduct(+productId);
   }
 
+  //modifier un produit spécifique
   // Supprimer un produit spécifique
   @Delete(':productId')
   @UseGuards(JwtAuthGuard)

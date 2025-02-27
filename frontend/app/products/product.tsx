@@ -20,13 +20,12 @@ import { API_URL } from "../common/constants/api";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-// ✅ **Styles pour les cartes**
 const ProductCard = styled(Card)(({ theme }) => ({
   backgroundColor: "#fff",
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: "12px",
   boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
   transition: "all 0.3s ease",
-  height: "100%", 
+  height: "100%",
   display: "flex",
   flexDirection: "column",
   "&:hover": {
@@ -34,15 +33,15 @@ const ProductCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-const StyledPrice = styled(Typography)(({ theme }) => ({
+const StyledPrice = styled(Typography)({
   fontWeight: "bold",
   fontSize: "1.2rem",
   color: "#2D7DD2",
-}));
+});
 
 interface ProductProps {
   product: IProduct;
-  onDelete: (id: string) => void; // Fonction pour supprimer un produit
+  onDelete: (id: string) => void;
 }
 
 export default function Product({ product, onDelete }: ProductProps) {
@@ -67,7 +66,7 @@ export default function Product({ product, onDelete }: ProductProps) {
               size="small"
               sx={{
                 backgroundColor: "#D0D7FF",
-                color: "#2D7DD2",
+                color: "#1A237E", // Meilleur contraste pour RGAA
                 fontWeight: 600,
               }}
             />
@@ -78,7 +77,7 @@ export default function Product({ product, onDelete }: ProductProps) {
               size="small"
               sx={{
                 backgroundColor: "#FFEBE8",
-                color: "#E63946",
+                color: "#B71C1C", // Meilleur contraste pour RGAA
                 fontWeight: 600,
               }}
             />
@@ -90,37 +89,49 @@ export default function Product({ product, onDelete }: ProductProps) {
 
   return (
     <ProductCard>
-      {/* ✅ Ajout des boutons Modifier et Supprimer en haut */}
+      {/* ✅ Amélioration accessibilité : Ajout de aria-label et tabIndex */}
       <Stack direction="row" justifyContent="space-between" sx={{ p: 1 }}>
         <Tooltip title="Modifier">
-          <IconButton onClick={() => router.push(`/products/edit/${product.id}`)} color="primary">
+          <IconButton 
+            onClick={() => router.push(`/products/edit/${product.id}`)}
+            color="primary"
+            aria-label={`Modifier le produit ${product.name}`}
+            tabIndex={0}
+          >
             <EditIcon />
           </IconButton>
         </Tooltip>
 
         <Tooltip title="Supprimer">
-          <IconButton onClick={() => onDelete(product.id)} color="error">
+          <IconButton 
+            onClick={() => onDelete(product.id)}
+            color="error"
+            aria-label={`Supprimer le produit ${product.name}`}
+            tabIndex={0}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
       </Stack>
 
       <CardActionArea
-        onClick={() => router.push(`/products/edit/${product.id}`)} 
+        onClick={() => router.push(`/products/edit/${product.id}`)}
         sx={{ padding: "16px", height: "100%" }}
+        tabIndex={0}
+        aria-label={`Voir les détails du produit ${product.name}`}
       >
         <Stack spacing={2} sx={{ height: "100%", justifyContent: "space-between" }}>
           <Typography variant="h6" fontWeight="bold">
             {product.name}
           </Typography>
 
-          {/* ✅ Image bien carrée et responsive */}
+          {/* ✅ Amélioration accessibilité : Ajout d'un alt clair pour les images */}
           <div
             style={{
               position: "relative",
               width: "100%",
               paddingTop: "100%",
-              backgroundColor: "#F0F0F0",
+              backgroundColor: "#A0A0A0",
               borderRadius: "8px",
               overflow: "hidden",
             }}
@@ -137,7 +148,7 @@ export default function Product({ product, onDelete }: ProductProps) {
                 )}
                 <Image
                   src={`${API_URL}/products/${product.id}.jpg`}
-                  alt={`Image de ${product.name}`}
+                  alt={`Photo du produit ${product.name}`}
                   layout="fill"
                   objectFit="cover"
                   onError={() => setImageError(true)}
@@ -165,12 +176,16 @@ export default function Product({ product, onDelete }: ProductProps) {
 
           {variantsSummary()}
 
-          {/* ✅ Badge Stock faible */}
+          {/* ✅ Accessibilité : Changer la couleur pour un contraste correct */}
           {product.variants.some((v) => v.stock < 5) && (
-            <Chip label="Stock Faible" color="error" size="small" sx={{ fontWeight: 600 }} />
+            <Chip 
+              label="Stock Faible" 
+              sx={{ backgroundColor: "#C62828", color: "#FFFFFF", fontWeight: 600 }} 
+              aria-label="Stock faible, attention à la disponibilité"
+            />
           )}
 
-          {/* ✅ Prix bien visible et attractif */}
+          {/* ✅ Prix bien visible et accessible */}
           <StyledPrice>
             {new Intl.NumberFormat("fr-FR", {
               style: "currency",
