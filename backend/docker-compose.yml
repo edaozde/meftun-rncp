@@ -34,7 +34,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules  # Empêche l’écrasement du dossier node_modules
-    command: ["/bin/sh", "-c", "npx prisma migrate deploy && npm run start:prod"]
+    command: ["/bin/sh", "-c", "npm run build && npx prisma migrate deploy && npm run start:prod"]
 
 volumes:
   postgres-data:

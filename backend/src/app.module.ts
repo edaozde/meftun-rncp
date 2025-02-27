@@ -1,3 +1,5 @@
+console.log('🔥 ProductsController a bien été mis à jour !');
+
 import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule, ConfigService } from '@nestjs/config';

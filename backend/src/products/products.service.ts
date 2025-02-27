@@ -6,6 +6,7 @@ import {
 import { CreateProductRequest } from './dto/create-product.request';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { UpdateProductRequest } from './dto/update-product.request';
 
 @Injectable()
 export class ProductsService {
@@ -69,6 +70,49 @@ export class ProductsService {
     return this.prismaService.product.update({
       where: { id: productId },
       data,
+      include: { variants: true },
+    });
+  }
+
+  //méthode pour modifier un produit
+
+  async updateProduct(
+    productId: number,
+    updateData: UpdateProductRequest,
+    userId: number,
+  ) {
+    const existingProduct = await this.prismaService.product.findUnique({
+      where: { id: productId },
+      include: { variants: true },
+    });
+
+    if (!existingProduct) {
+      throw new NotFoundException(`Produit non trouvé avec l'ID ${productId}`);
+    }
+
+    if (existingProduct.userId !== userId) {
+      throw new BadRequestException(
+        "Vous n'êtes pas autorisé à modifier ce produit",
+      );
+    }
+
+    return this.prismaService.product.update({
+      where: { id: productId },
+      data: {
+        name: updateData.name ?? existingProduct.name,
+        description: updateData.description ?? existingProduct.description,
+        price: updateData.price ?? existingProduct.price,
+        variants: updateData.variants
+          ? {
+              deleteMany: {},
+              create: updateData.variants.map((variant) => ({
+                size: variant.size ?? '',
+                color: variant.color ?? '',
+                stock: variant.stock ?? 1,
+              })),
+            }
+          : undefined,
+      },
       include: { variants: true },
     });
   }

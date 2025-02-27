@@ -6,51 +6,79 @@ import {
   Get,
   Param,
   Post,
+  Put,
   UseGuards,
   BadRequestException,
   UsePipes,
   ValidationPipe,
-  UploadedFile,
+  Logger,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateProductRequest } from './dto/create-product.request';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ProductsService } from './products.service';
 import { TokenPayload } from 'src/auth/token.payload.interface';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateProductRequest } from './dto/update-product.request';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) {
+    Logger.log('✅ ProductsController chargé', 'ProductsController');
+  }
 
-  // Création d'un produit avec une image
+  // 🔥 TEST : Route `PUT` simple sans validation
+  @Put('test-put')
+  async testPut() {
+    Logger.log(
+      '✅ Route `PUT /products/test-put` détectée',
+      'ProductsController',
+    );
+    return { message: 'PUT fonctionne !' };
+  }
+
+  // 🔥 TEST : Route `PUT` sans validation pour voir si ça bloque à cause de ValidationPipe
+  @Put(':productId/no-validation')
+  async updateProductNoValidation(@Param('productId') productId: string) {
+    Logger.log(
+      `✅ PUT reçu pour produit ${productId} (sans validation)`,
+      'ProductsController',
+    );
+    return { message: `Produit ${productId} mis à jour (sans validation)` };
+  }
+
+  // 🔥 Route officielle `PUT /products/:id`
+  @Put(':productId')
+  @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async updateProduct(
+    @Param('productId') productId: string,
+    @Body() updateData: UpdateProductRequest,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    Logger.log(
+      `✅ Route PUT détectée pour produit ${productId}`,
+      'ProductsController',
+    );
+
+    return this.productsService.updateProduct(
+      +productId,
+      updateData,
+      user.userId,
+    );
+  }
+
+  // Création d'un produit
   @Post()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async createProduct(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() body: any,
+    @Body() body: CreateProductRequest,
     @CurrentUser() user: TokenPayload,
   ) {
-    console.log('🔍 REQUÊTE REÇUE BACKEND:', body);
-    console.log('🔍 Variants avant parsing:', body.variants);
-
-    if (body.variants) {
-      try {
-        body.variants = JSON.parse(body.variants);
-        console.log('✅ Variants après parsing:', body.variants);
-      } catch (error) {
-        console.error('🚨 Erreur de parsing des variants:', error);
-        throw new BadRequestException('Variants must be a valid JSON array');
-      }
-    }
-
-    // ✅ Conversion du prix en float pour éviter l'erreur Prisma
-    body.price = parseFloat(body.price);
-    if (isNaN(body.price)) {
-      throw new BadRequestException('Price must be a valid number');
-    }
-
+    Logger.log(
+      '✅ Requête POST reçue pour création de produit',
+      'ProductsController',
+    );
     return this.productsService.createProduct(body, user.userId);
   }
 
@@ -58,6 +86,10 @@ export class ProductsController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async getProducts() {
+    Logger.log(
+      '✅ Requête GET reçue pour tous les produits',
+      'ProductsController',
+    );
     return this.productsService.getProducts();
   }
 
@@ -65,29 +97,24 @@ export class ProductsController {
   @Get(':productId')
   @UseGuards(JwtAuthGuard)
   async getProduct(@Param('productId') productId: string) {
+    Logger.log(
+      `✅ Requête GET reçue pour produit ${productId}`,
+      'ProductsController',
+    );
     return this.productsService.getProduct(+productId);
   }
 
-  //modifier un produit spécifique
   // Supprimer un produit spécifique
   @Delete(':productId')
   @UseGuards(JwtAuthGuard)
   async deleteProduct(
     @Param('productId') productId: string,
-    @CurrentUser() user: TokenPayload, // Récupère l'utilisateur connecté via le décorateur
+    @CurrentUser() user: TokenPayload,
   ) {
-    // Appel du service pour supprimer le produit et ses variantes
-    const result = await this.productsService.deleteProduct(
-      +productId,
-      user.userId,
+    Logger.log(
+      `🗑️ DELETE reçu pour produit ${productId}`,
+      'ProductsController',
     );
-
-    if (!result) {
-      throw new BadRequestException(
-        "Produit non trouvé ou vous n'êtes pas autorisé à le supprimer",
-      );
-    }
-
-    return { message: 'Produit supprimé avec succès' };
+    return this.productsService.deleteProduct(+productId, user.userId);
   }
 }

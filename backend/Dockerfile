@@ -25,5 +25,5 @@ RUN npm run build
 # Exposer le port
 EXPOSE 3001
 
-# Lancer les migrations avant le démarrage de l'application
-CMD npx prisma migrate deploy && npm run start:prod
+# 🔥 Condition : en mode dev, utiliser `start:dev`, sinon `start:prod`
+CMD if [ "$NODE_ENV" = "development" ]; then npm run start:dev; else npm run build && npx prisma migrate deploy && npm run start:prod; fi
