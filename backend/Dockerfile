@@ -16,8 +16,12 @@ RUN npm install
 # Copier le reste du code source
 COPY . .
 
-# Générer le client Prisma
+# Copier le dossier Prisma avant de générer Prisma
+COPY prisma /app/prisma
+
+# Générer le client Prisma avec le bon schema.prisma
 RUN npx prisma generate
+
 
 # Compiler le code TypeScript
 RUN npm run build
@@ -26,4 +30,4 @@ RUN npm run build
 EXPOSE 3001
 
 # 🔥 Condition : en mode dev, utiliser `start:dev`, sinon `start:prod`
-CMD if [ "$NODE_ENV" = "development" ]; then npm run start:dev; else npm run build && npx prisma migrate deploy && npm run start:prod; fi
+CMD if [ "$NODE_ENV" = "development" ]; then npx prisma migrate dev && npm run start:dev; else npm run build && npx prisma migrate deploy && npm run start:prod; fi
