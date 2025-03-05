@@ -40,7 +40,7 @@ export class ProductsService {
             })),
           },
         },
-        include: { variants: true },
+        include: { variants: true, images: true }, // ✅ Ajout des images
       });
     } catch (error) {
       throw new Error(`Erreur création produit : ${error.message}`);
@@ -50,7 +50,7 @@ export class ProductsService {
   // Méthode pour récupérer tous les produits
   async getProducts() {
     return this.prismaService.product.findMany({
-      include: { variants: true },
+      include: { variants: true, images: true }, // ✅ Ajout des images
     });
   }
 
@@ -59,23 +59,23 @@ export class ProductsService {
     try {
       return await this.prismaService.product.findUniqueOrThrow({
         where: { id: productId },
-        include: { variants: true },
+        include: { variants: true, images: true }, // ✅ Ajout des images
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       throw new NotFoundException(`Produit non trouvé avec l'ID ${productId}`);
     }
   }
+
   async update(productId: number, data: Prisma.ProductUpdateInput) {
     return this.prismaService.product.update({
       where: { id: productId },
       data,
-      include: { variants: true },
+      include: { variants: true, images: true }, // ✅ Ajout des images
     });
   }
 
-  //méthode pour modifier un produit
-
+  // Méthode pour modifier un produit
   async updateProduct(
     productId: number,
     updateData: UpdateProductRequest,
@@ -83,7 +83,7 @@ export class ProductsService {
   ) {
     const existingProduct = await this.prismaService.product.findUnique({
       where: { id: productId },
-      include: { variants: true },
+      include: { variants: true, images: true }, // ✅ Ajout des images
     });
 
     if (!existingProduct) {
@@ -113,7 +113,7 @@ export class ProductsService {
             }
           : undefined,
       },
-      include: { variants: true },
+      include: { variants: true, images: true }, // ✅ Ajout des images
     });
   }
 
@@ -122,7 +122,7 @@ export class ProductsService {
     // Vérifier si le produit existe
     const product = await this.prismaService.product.findUnique({
       where: { id: productId },
-      include: { variants: true }, // Inclure les variantes associées
+      include: { variants: true, images: true }, // ✅ Inclure les images associées
     });
 
     if (!product) {
@@ -136,6 +136,11 @@ export class ProductsService {
       );
     }
 
+    // Supprimer les images associées au produit avant de supprimer le produit
+    await this.prismaService.productImage.deleteMany({
+      where: { productId: productId },
+    });
+
     // Supprimer les variantes associées au produit avant de supprimer le produit
     await this.prismaService.variant.deleteMany({
       where: { productId: productId },
@@ -147,5 +152,22 @@ export class ProductsService {
     });
 
     return true; // Retourne true si la suppression a réussi
+  }
+
+  // ✅ Ajout d'une image à un produit
+  async addProductImage(productId: number, fileName: string) {
+    return this.prismaService.productImage.create({
+      data: {
+        url: `/images/products/${fileName}`,
+        product: { connect: { id: productId } },
+      },
+    });
+  }
+
+  // ✅ Suppression d'une image d'un produit
+  async deleteProductImage(imageId: number) {
+    return this.prismaService.productImage.delete({
+      where: { id: imageId },
+    });
   }
 }

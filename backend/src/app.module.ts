@@ -1,19 +1,22 @@
-console.log('🔥 ProductsController a bien été mis à jour !');
+console.log(' ProductsController a bien été mis à jour !');
 
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
-//import { ServeStaticModule } from '@nestjs/serve-static';
-//import { join } from 'path';
 import { CheckoutModule } from './checkout/checkout.module';
 import { PinoLogger } from 'nestjs-pino';
 import { AdminModule } from './admin/admin.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { PrismaModule } from './prisma/prisma.module'; // ✅ Ajout du PrismaModule
+import { AuditLoggerMiddleware } from './middleware/audit-logger.middleware'; // ✅ Ajout du middleware
 
 @Module({
   imports: [
+    PrismaModule, // ✅ Ajoute PrismaModule pour rendre PrismaService disponible
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -38,8 +41,12 @@ import { AdminModule } from './admin/admin.module';
       },
       inject: [ConfigService],
     }),
-    // ServeStaticModule.forRoot({
-    // rootPath: join(__dirname, '..', 'public'),
+
+    // ✅ Configuration pour servir les images stockées dans "public"
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/public',
+    }),
 
     ConfigModule.forRoot(),
     UsersModule,
@@ -51,8 +58,12 @@ import { AdminModule } from './admin/admin.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {
+export class AppModule implements NestModule {
   constructor(private readonly logger: PinoLogger) {
     this.logger.info('🚀 Application NestJS démarrée avec succès !');
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuditLoggerMiddleware).forRoutes('*'); // ✅ Middleware actif sur toutes les routes
   }
 }

@@ -7,20 +7,23 @@ import {
   UseGuards,
   Body,
   Param,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { AdminGuard } from '../auth/guards/admin-auth.guard'; // ✅ Import du guard Admin
+import { AdminGuard } from '../auth/guards/admin-auth.guard';
 import { ProductsService } from './products.service';
 import { CreateProductRequest } from './dto/create-product.request';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { TokenPayload } from 'src/auth/token.payload.interface';
 import { UpdateProductRequest } from './dto/update-product.request';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from '../config/upload.config';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  // ✅ Permet à tous les utilisateurs de voir les produits sans être connectés
   @Get()
   async getProducts() {
     return this.productsService.getProducts();
@@ -31,7 +34,6 @@ export class ProductsController {
     return this.productsService.getProduct(+productId);
   }
 
-  // ✅ Seuls les ADMIN/SUPERADMIN peuvent créer des produits
   @Post()
   @UseGuards(JwtAuthGuard, AdminGuard)
   async createProduct(
@@ -41,7 +43,6 @@ export class ProductsController {
     return this.productsService.createProduct(body, user.userId);
   }
 
-  // ✅ Seuls les ADMIN/SUPERADMIN peuvent modifier un produit
   @Put(':productId')
   @UseGuards(JwtAuthGuard, AdminGuard)
   async updateProduct(
@@ -56,7 +57,6 @@ export class ProductsController {
     );
   }
 
-  // ✅ Seuls les ADMIN/SUPERADMIN peuvent supprimer un produit
   @Delete(':productId')
   @UseGuards(JwtAuthGuard, AdminGuard)
   async deleteProduct(
@@ -64,5 +64,23 @@ export class ProductsController {
     @CurrentUser() user: TokenPayload,
   ) {
     return this.productsService.deleteProduct(+productId, user.userId);
+  }
+
+  // ✅ Upload d'image pour un produit
+  @Post(':productId/image')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseInterceptors(FileInterceptor('image', multerConfig))
+  async uploadProductImage(
+    @Param('productId') productId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.productsService.addProductImage(+productId, file.filename);
+  }
+
+  // ✅ Suppression d'image pour un produit
+  @Delete(':productId/image/:imageId')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async deleteProductImage(@Param('imageId') imageId: string) {
+    return this.productsService.deleteProductImage(+imageId);
   }
 }
