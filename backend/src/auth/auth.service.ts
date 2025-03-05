@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import ms from 'ms';
 import * as bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
 import { Response } from 'express';
@@ -17,24 +16,36 @@ export class AuthService {
   ) {}
 
   async login(user: User, response: Response) {
-    const expires = new Date();
-    expires.setMilliseconds(
-      expires.getMilliseconds() +
-        ms(this.configService.getOrThrow<string>('JWT_EXPIRATION')),
-    );
+    const secretKey =
+      user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+        ? this.configService.getOrThrow<string>('JWT_SECRET_ADMIN')
+        : this.configService.getOrThrow<string>('JWT_SECRET_USER');
+
+    const expiresIn =
+      user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+        ? this.configService.getOrThrow<string>('JWT_EXPIRATION_ADMIN')
+        : this.configService.getOrThrow<string>('JWT_EXPIRATION');
 
     const tokenPayload: TokenPayload = {
       userId: user.id,
+      role: user.role,
     };
-    const token = this.jwtService.sign(tokenPayload);
 
-    response.cookie('Authentication', token, {
-      secure: true,
-      httpOnly: true,
-      expires,
+    const token = this.jwtService.sign(tokenPayload, {
+      secret: secretKey,
+      expiresIn,
     });
 
-    return { tokenPayload };
+    response.cookie('Authentication', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: expiresIn.includes('h')
+        ? parseInt(expiresIn) * 3600000
+        : parseInt(expiresIn) * 1000,
+    });
+
+    return { message: 'Connexion réussie', tokenPayload }; // ✅ Retourne aussi les infos
   }
 
   async verifyUser(email: string, password: string) {
@@ -47,7 +58,7 @@ export class AuthService {
       return user;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      throw new UnauthorizedException('Credentials are not valid.');
+      throw new UnauthorizedException('Identifiants incorrects.');
     }
   }
 }

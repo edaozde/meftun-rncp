@@ -23,18 +23,29 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env  # Assure que les variables d’environnement sont bien chargées
     container_name: backend-app
     restart: always
     ports:
       - "3001:3001"
     environment:
       DATABASE_URL: "postgresql://postgres:admin@postgres:5432/meftun?schema=public"
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_SECRET_ADMIN: "${JWT_SECRET_ADMIN}"   # Ajout du secret JWT ici pour Docker
+      JWT_EXPIRATION: "${JWT_EXPIRATION}"
+      JWT_EXPIRATION_ADMIN: "${JWT_EXPIRATION_ADMIN}"
+
     depends_on:
       - postgres
     volumes:
       - .:/app
       - /app/node_modules  # Empêche l’écrasement du dossier node_modules
-    command: ["/bin/sh", "-c", "npm run build && npx prisma migrate deploy && npm run start:prod"]
+    command: >
+      sh -c "npx prisma generate &&
+             npx prisma migrate deploy &&
+             npm run build &&
+             npm run start:prod"
 
 volumes:
   postgres-data:

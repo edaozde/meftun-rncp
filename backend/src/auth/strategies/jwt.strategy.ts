@@ -6,17 +6,31 @@ import { ConfigService } from '@nestjs/config';
 import { TokenPayload } from '../token.payload.interface';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+  constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => request.cookies.Authentication,
       ]),
-      secretOrKey: configService.getOrThrow('JWT_SECRET'),
+      secretOrKeyProvider: (request, rawJwtToken, done) => {
+        try {
+          const payload = JSON.parse(
+            Buffer.from(rawJwtToken.split('.')[1], 'base64').toString(),
+          );
+          const secret =
+            payload.role === 'ADMIN' || payload.role === 'SUPERADMIN'
+              ? configService.getOrThrow<string>('JWT_SECRET_ADMIN')
+              : configService.getOrThrow<string>('JWT_SECRET_USER');
+
+          done(null, secret);
+        } catch (error) {
+          done(error);
+        }
+      },
     });
   }
 
   validate(payload: TokenPayload) {
-    return payload;
+    return { userId: payload.userId, role: payload.role };
   }
 }
