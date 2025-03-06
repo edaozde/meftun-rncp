@@ -45,7 +45,25 @@ export class AuthService {
         : parseInt(expiresIn) * 1000,
     });
 
-    return { message: 'Connexion réussie', tokenPayload }; // ✅ Retourne aussi les infos
+    return { message: 'Connexion réussie', tokenPayload };
+  }
+
+  // ✅ Ajout de la méthode adminLogin
+  async adminLogin(email: string, password: string, response: Response) {
+    const user = await this.usersService.getUser({ email });
+
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
+      throw new UnauthorizedException("Accès refusé, vous n'êtes pas admin.");
+    }
+
+    const authenticated = await bcrypt.compare(password, user.password);
+    if (!authenticated) {
+      throw new UnauthorizedException('Mot de passe incorrect.');
+    }
+
+    console.log('✅ Admin authentifié, envoi de la réponse...'); // 🔥 Ajout du log
+
+    return this.login(user, response); // Vérifie bien que cette ligne est exécutée
   }
 
   async verifyUser(email: string, password: string) {
@@ -56,7 +74,6 @@ export class AuthService {
         throw new UnauthorizedException();
       }
       return user;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       throw new UnauthorizedException('Identifiants incorrects.');
     }

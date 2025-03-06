@@ -11,12 +11,20 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   imports: [
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.getOrThrow('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.getOrThrow('JWT_EXPIRATION'),
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET_USER'); // ✅ On utilise le bon secret
+        const expiration = configService.get<string>('JWT_EXPIRATION');
+
+        console.log('🔑 JWT_SECRET utilisé :', secret);
+        console.log('⏳ Expiration :', expiration);
+
+        return {
+          secret,
+          signOptions: {
+            expiresIn: expiration,
+          },
+        };
+      },
       inject: [ConfigService],
     }),
     ConfigModule,

@@ -31,7 +31,7 @@ services:
       - "3001:3001"
     environment:
       DATABASE_URL: "postgresql://postgres:admin@postgres:5432/meftun?schema=public"
-      JWT_SECRET: "${JWT_SECRET}"
+      JWT_SECRET: "${JWT_SECRET_USER}"
       JWT_SECRET_ADMIN: "${JWT_SECRET_ADMIN}"   # Ajout du secret JWT ici pour Docker
       JWT_EXPIRATION: "${JWT_EXPIRATION}"
       JWT_EXPIRATION_ADMIN: "${JWT_EXPIRATION_ADMIN}"
