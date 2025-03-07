@@ -16,25 +16,24 @@ import {
   Stack,
   Card as MuiCard,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles"; // ✅ Ajout de `useTheme`
 import NextLink from "next/link";
 import { useFormState } from "react-dom";
 import createUser from "./create-user";
 import ColorModeSelect from "@/shared-theme/ColorModeSelect";
 import AppTheme from "@/shared-theme/AppTheme";
 
-// ✅ **Fix du Background pour prendre toute la hauteur**
+// ✅ **Utilisation du thème global**
 const FullScreenContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
   width: "100vw",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "linear-gradient(135deg, #eef2ff 0%, #d0d7ff 100%)",
+  backgroundColor: theme.palette.background.default, // 🎨 Thème global
   padding: theme.spacing(2),
 }));
 
-// ✅ **Fix du `Card` pour garder un bon équilibre**
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
@@ -43,45 +42,36 @@ const Card = styled(MuiCard)(({ theme }) => ({
   padding: theme.spacing(4),
   gap: theme.spacing(2),
   borderRadius: theme.shape.borderRadius * 2,
-  backgroundColor: "#fff",
-  boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.1)",
+  backgroundColor: theme.palette.background.paper, // 🎨 Cohérence avec le thème
+  color: theme.palette.text.primary,
+  boxShadow: theme.shadows[5],
   transition: "all 0.3s ease",
-  "&:hover": {
-    boxShadow: "0px 12px 30px rgba(0, 0, 0, 0.15)",
-  },
-  [theme.breakpoints.down("sm")]: {
-    padding: theme.spacing(3),
-    maxWidth: "90%",
-  },
+  "&:hover": { boxShadow: theme.shadows[10] },
+  [theme.breakpoints.down("sm")]: { padding: theme.spacing(3), maxWidth: "90%" },
 }));
 
-// ✅ **Fix du bouton pour un effet plus doux**
 const StyledButton = styled(Button)(({ theme }) => ({
-  background: "#2D7DD2",
-  color: "#FFFFFF",
+  background: theme.palette.primary.main, // 🎨 Utilisation du thème
+  color: theme.palette.primary.contrastText,
   padding: theme.spacing(1.5),
   fontSize: "1rem",
   fontWeight: 600,
   textTransform: "none",
   transition: "background 0.3s ease, transform 0.2s ease",
-  "&:hover": {
-    background: "#205F9F",
-    transform: "scale(1.02)",
-  },
-  "&:disabled": {
-    background: "#B0B0B0",
-    color: "#FFFFFF",
-  },
+  "&:hover": { background: theme.palette.primary.dark, transform: "scale(1.02)" },
+  "&:disabled": { background: theme.palette.grey[500], color: "#FFFFFF" },
 }));
 
 export default function Signup(props: { disableCustomTheme?: boolean }) {
   const [state, formAction] = useFormState(createUser, { error: "" });
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const theme = useTheme(); // ✅ Récupération du thème global
 
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <ColorModeSelect sx={{ position: "fixed", top: "1rem", right: "1rem" }} />
+
       <FullScreenContainer>
         <Card variant="outlined">
           <Typography
@@ -89,24 +79,14 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{
               textAlign: "center",
-              fontSize: "clamp(2rem, 10vw, 2.25rem)",
               fontWeight: "bold",
+              color: theme.palette.primary.main,
             }}
           >
             Inscription
           </Typography>
 
-          <Box
-            component="form"
-            action={formAction}
-            noValidate
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              gap: 2,
-            }}
-          >
+          <Box component="form" action={formAction} noValidate sx={{ display: "flex", flexDirection: "column", width: "100%", gap: 2 }}>
             <FormControl>
               <TextField
                 name="email"
@@ -118,8 +98,13 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                 fullWidth
                 error={!!state.error}
                 helperText={state.error}
+                InputProps={{
+                  style: { color: theme.palette.text.primary, background: theme.palette.background.default },
+                }}
+                InputLabelProps={{ style: { color: theme.palette.text.secondary } }}
               />
             </FormControl>
+
             <FormControl>
               <TextField
                 name="password"
@@ -131,6 +116,10 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                 fullWidth
                 error={!!state.error}
                 helperText={state.error}
+                InputProps={{
+                  style: { color: theme.palette.text.primary, background: theme.palette.background.default },
+                }}
+                InputLabelProps={{ style: { color: theme.palette.text.secondary } }}
               />
             </FormControl>
 
@@ -139,12 +128,13 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                 <Checkbox
                   checked={acceptedPrivacy}
                   onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                  sx={{ color: theme.palette.primary.main }} // 🎨 Cohérence avec le thème
                 />
               }
               label={
                 <Typography variant="body2">
                   J’accepte les{" "}
-                  <Link href="/terms-and-conditions" target="_blank">
+                  <Link href="/terms-and-conditions" target="_blank" sx={{ color: theme.palette.primary.main, fontWeight: "bold" }}>
                     Termes et Conditions
                   </Link>
                   .
@@ -154,7 +144,7 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
 
             <Stack spacing={2}>
               <StyledButton type="submit" fullWidth disabled={!acceptedPrivacy}>
-              S&apos;inscrire
+                S&apos;inscrire
               </StyledButton>
 
               <Button
@@ -165,6 +155,9 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                 sx={{
                   textTransform: "none",
                   fontWeight: "bold",
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                  "&:hover": { background: theme.palette.primary.light },
                 }}
               >
                 Se connecter
@@ -176,12 +169,7 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
 
           <Typography sx={{ textAlign: "center", fontSize: "0.9rem" }}>
             Déjà un compte ?{" "}
-            <Link
-              component={NextLink}
-              href="/auth/login"
-              variant="body2"
-              sx={{ fontWeight: "bold" }}
-            >
+            <Link component={NextLink} href="/auth/login" variant="body2" sx={{ fontWeight: "bold", color: theme.palette.primary.main }}>
               Se connecter
             </Link>
           </Typography>

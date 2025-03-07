@@ -1,52 +1,80 @@
-import * as React from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import type { ThemeOptions } from '@mui/material/styles';
-import { inputsCustomizations } from './customizations/inputs';
-import { dataDisplayCustomizations } from './customizations/dataDisplay';
-import { feedbackCustomizations } from './customizations/feedback';
-import { navigationCustomizations } from './customizations/navigation';
-import { surfacesCustomizations } from './customizations/surfaces';
-import { colorSchemes, typography, shadows, shape } from './themePrimitives';
+"use client";
 
-interface AppThemeProps {
-  children: React.ReactNode;
-  /**
-   * This is for the docs site. You can ignore it or remove it.
-   */
-  disableCustomTheme?: boolean;
-  themeComponents?: ThemeOptions['components'];
-}
+import { ReactNode } from "react";
+import { createTheme, ThemeProvider, CssBaseline } from "@mui/material";
+import { grey } from "@mui/material/colors"; 
 
-export default function AppTheme(props: AppThemeProps) {
-  const { children, disableCustomTheme, themeComponents } = props;
-  const theme = React.useMemo(() => {
-    return disableCustomTheme
-      ? {}
-      : createTheme({
-          // For more details about CSS variables configuration, see https://mui.com/material-ui/customization/css-theme-variables/configuration/
-          cssVariables: {
-            colorSchemeSelector: 'data-mui-color-scheme',
-            cssVarPrefix: 'template',
+const theme = createTheme({
+  palette: {
+    mode: "light",
+    primary: { main: "#5D4037", contrastText: "#FFFFFF" }, 
+    secondary: { main: "#D9822B", contrastText: "#212121" }, 
+    background: { default: "#F9F5EC", paper: "#FFFFFF" }, 
+    text: { primary: "#3E2723", secondary: grey[800] }, 
+    action: { active: "#8D4F32" }, 
+  },
+  typography: {
+    fontFamily: "'Playfair Display', 'Inter', serif", 
+    h1: { fontSize: "2.5rem", fontWeight: 700, color: "#5D4037" }, 
+    h2: { fontSize: "1.75rem", fontWeight: 600, color: "#5D4037" },
+    body1: { fontSize: "1rem", lineHeight: 1.6, color: "#3E2723" },
+    button: { textTransform: "none", fontWeight: 600 },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "#8D4F32", 
+          color: "#FFFFFF",
+          padding: "12px 20px",
+          fontSize: "1rem",
+          fontWeight: "bold",
+          borderRadius: "8px", 
+          transition: "background 0.3s ease, transform 0.2s ease",
+          "&:hover": {
+            backgroundColor: "#6D3A2A",
+            transform: "scale(1.02)", 
           },
-          colorSchemes, // Recently added in v6 for building light & dark mode app, see https://mui.com/material-ui/customization/palette/#color-schemes
-          typography,
-          shadows,
-          shape,
-          components: {
-            ...inputsCustomizations,
-            ...dataDisplayCustomizations,
-            ...feedbackCustomizations,
-            ...navigationCustomizations,
-            ...surfacesCustomizations,
-            ...themeComponents,
+        },
+      },
+    },
+    MuiCard: { 
+      styleOverrides: {
+        root: {
+          borderRadius: "12px", 
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", 
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.15)",
           },
-        });
-  }, [disableCustomTheme, themeComponents]);
-  if (disableCustomTheme) {
-    return <React.Fragment>{children}</React.Fragment>;
-  }
+        },
+      },
+    },
+    MuiChip: { 
+      styleOverrides: {
+        root: {
+          fontSize: "0.8rem",
+          padding: "4px 8px",
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          maxWidth: "1200px",
+          padding: "16px",
+        },
+      },
+    },
+  },
+});
+
+export default function AppTheme({ children }: { children: ReactNode }) {
+  console.log("✅ Thème PREMIUM & ACCESSIBLE appliqué !");
   return (
-    <ThemeProvider theme={theme} disableTransitionOnChange>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       {children}
     </ThemeProvider>
   );

@@ -24,6 +24,12 @@ async function bootstrap() {
   // Activation du parsing des cookies pour gérer l'authentification et la gestion de session
   app.use(cookieParser());
 
+  // 🔥 Autoriser le frontend à envoyer et recevoir des cookies
+  app.enableCors({
+    origin: 'http://localhost:3000', // ⚠️ Mets l'URL de ton frontend
+    credentials: true, // ✅ Obligatoire pour autoriser les cookies
+  });
+
   // Configuration du port à partir des variables d'environnement pour une flexibilité entre environnements
   await app.listen(app.get(ConfigService).getOrThrow('PORT'));
 }

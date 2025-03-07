@@ -3,24 +3,25 @@
 import { Box, Container, Link, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-// ✅ Footer qui reste en bas sans chevaucher le contenu
+// ✅ Footer qui reste en bas et s'intègre bien au design
 const FooterContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: "#1E3A8A", // ✅ Même couleur que le header
-  color: "white",
+  backgroundColor: "#4E342E", // ✅ Marron foncé pour uniformité avec le thème
+  color: "#FFFFFF", // ✅ Texte blanc pour un contraste élevé
   padding: theme.spacing(3, 0),
   textAlign: "center",
-  width: "100%", // ✅ Largeur complète
-  marginTop: "auto", // ✅ S'assure qu'il est toujours en bas si peu de contenu
+  width: "100%",
+  marginTop: "auto", // ✅ Positionne le footer en bas si le contenu est insuffisant
 }));
 
 const FooterLink = styled(Link)(({ theme }) => ({
-  color: "#FFDA44", // ✅ Jaune pour le contraste
+  color: "#FFB300", // ✅ Or profond pour une meilleure visibilité
   textDecoration: "none",
   fontSize: "0.9rem",
   transition: "color 0.3s ease",
+  fontWeight: "bold",
   "&:hover": {
     textDecoration: "underline",
-    color: "#FFD700",
+    color: "#FFA000",
   },
 }));
 

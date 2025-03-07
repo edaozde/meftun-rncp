@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# Project Title
 
-First, run the development server:
+A brief description of what this project does and who it's for
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+🛍️ MEFTUN – Plateforme e-commerce & gestion admin
+Meftun est une plateforme e-commerce combinant une interface utilisateur et un espace administrateur dédié à la gestion des produits et des commandes.
+L'application met l'accent sur l'accessibilité, l'expérience utilisateur fluide et une authentification sécurisée.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🚀 Démarrage du projet
+📥 Cloner le repository
+bash
+Copier
+Modifier
+git clone git@github.com:TonGit/Meftun.git meftun
+cd meftun
+📦 Installation des dépendances
+bash
+Copier
+Modifier
+npm install  # ou yarn install
+🏃‍♂️ Lancer le frontend
+bash
+Copier
+Modifier
+npm run dev  # ou yarn dev
+📌 L'application sera accessible sur http://localhost:3000/
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🐳 Lancer le backend avec Docker
+Le backend est dockerisé pour simplifier son exécution et éviter les problèmes d’environnement.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1️⃣ Assurez-vous d’avoir Docker installé
+2️⃣ Lancer le backend
 
-## Learn More
+bash
+Copier
+Modifier
+docker-compose up -d
+📌 Le backend tournera sur http://localhost:3001/
 
-To learn more about Next.js, take a look at the following resources:
+3️⃣ Vérifier que tout fonctionne
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+bash
+Copier
+Modifier
+docker ps  # Vérifie que le conteneur est bien en cours d'exécution
+🛠️ Technologies utilisées
+Stack	Technologies 🚀
+Frontend	Next.js (React), TypeScript, Material UI
+Backend	Node.js (NestJS), PostgreSQL (via Prisma)
+Auth	JWT + Cookies HTTPOnly
+Paiement	Stripe
+Conteneurisation	Docker (uniquement pour le backend)
+Déploiement	Vercel & Docker
+📌 Fonctionnalités clés
+🔑 Authentification & Sécurité
+✔️ Inscription et connexion utilisateur via JWT
+✔️ Authentification sécurisée avec cookies HTTPOnly
+✔️ Redirection automatique selon le rôle (Admin / Utilisateur)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🛍️ Gestion des produits
+✔️ Ajout, modification et suppression de produits
+✔️ Gestion des stocks et variantes (tailles, couleurs)
+✔️ Upload & affichage des images
 
-## Deploy on Vercel
+📦 Commandes & Paiements
+✔️ Panier & validation de commande
+✔️ Historique des commandes utilisateur
+✔️ Paiement sécurisé via Stripe
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+⚙️ Espace administrateur
+✔️ Gestion des produits et des utilisateurs
+✔️ Suivi des commandes et statistiques
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+📩 Contact : contact@meftun.com
