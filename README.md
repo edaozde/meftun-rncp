@@ -1,3 +1,8 @@
+
+# Project Title
+
+A brief description of what this project does and who it's for
+
 🛍️ MEFTUN – Plateforme e-commerce & gestion admin
 Meftun est une plateforme e-commerce combinant une interface utilisateur et un espace administrateur dédié à la gestion des produits et des commandes.
 L'application met l'accent sur l'accessibilité, l'expérience utilisateur fluide et une authentification sécurisée.
