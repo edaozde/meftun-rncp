@@ -11,19 +11,15 @@ import {
   Card as MuiCard,
   FormControl,
   CircularProgress,
+  Link,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
-import { useFormState } from "react-dom";
-import { useRouter } from "next/navigation";
 import NextLink from "next/link";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import adminLogin from "./admin-login";
-import { FormResponse } from "@/app/common/interfaces/form-response.interface";
+import { useFormState } from "react-dom";
 import AppTheme from "@/shared-theme/AppTheme";
-import { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../auth-context";
+import { useState } from "react";
+import LockResetIcon from "@mui/icons-material/LockReset";
 
-// ✅ **Utilisation des couleurs du thème global**
 const FullScreenContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
   width: "100vw",
@@ -47,7 +43,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
   boxShadow: theme.shadows[5],
   transition: "all 0.3s ease",
   border: `2px solid ${theme.palette.primary.main}20`,
-  "&:hover": {
+  "&:hover": { 
     boxShadow: theme.shadows[10],
     borderColor: `${theme.palette.primary.main}40`,
   },
@@ -74,25 +70,13 @@ const StyledButton = styled(Button)(({ theme }) => ({
   "&:disabled": { background: theme.palette.grey[500], color: "#FFFFFF" },
 }));
 
-export default function AdminLoginPage(props: {
-  disableCustomTheme?: boolean;
-}) {
-  const router = useRouter();
-  const { refreshSession } = useContext(AuthContext);
-  const [state, formAction] = useFormState<FormResponse, FormData>(adminLogin, {
-    error: "",
-  });
+export default function ForgotPasswordPage(props: { disableCustomTheme?: boolean }) {
+  const [state, formAction] = useFormState(async (formData: FormData) => {
+    // TODO: Implémenter l'action de réinitialisation
+    return { success: true, message: "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation." };
+  }, { success: false, message: "" });
   const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
-
-  useEffect(() => {
-    if (state && !state.error) {
-      refreshSession().then(() => {
-        router.push("/admin/dashboard");
-        router.refresh();
-      });
-    }
-  }, [state, router, refreshSession]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,13 +90,13 @@ export default function AdminLoginPage(props: {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <FullScreenContainer>
-        <Card
-          variant="outlined"
+        <Card 
+          variant="outlined" 
           role="form"
-          aria-labelledby="admin-login-title"
+          aria-labelledby="forgot-password-title"
         >
           <Typography
-            id="admin-login-title"
+            id="forgot-password-title"
             component="h1"
             variant="h4"
             sx={{
@@ -125,8 +109,8 @@ export default function AdminLoginPage(props: {
               gap: 1,
             }}
           >
-            <AdminPanelSettingsIcon sx={{ fontSize: 32 }} />
-            Connexion Administrateur
+            <LockResetIcon sx={{ fontSize: 32 }} />
+            Mot de passe oublié
           </Typography>
 
           <Typography
@@ -137,21 +121,23 @@ export default function AdminLoginPage(props: {
               mb: 2,
             }}
           >
-            Accès réservé aux administrateurs.
+            Entrez votre email pour recevoir un lien de réinitialisation.
           </Typography>
 
-          {state.error && (
-            <Typography
-              color="error"
-              sx={{
+          {state.message && (
+            <Typography 
+              color={state.success ? "success.main" : "error.main"}
+              sx={{ 
                 textAlign: "center",
-                backgroundColor: `${theme.palette.error.main}10`,
+                backgroundColor: state.success 
+                  ? `${theme.palette.success.main}10`
+                  : `${theme.palette.error.main}10`,
                 padding: 1,
                 borderRadius: 1,
-                fontSize: "0.875rem",
+                fontSize: "0.875rem"
               }}
             >
-              {state.error}
+              {state.message}
             </Typography>
           )}
 
@@ -175,29 +161,7 @@ export default function AdminLoginPage(props: {
                 autoComplete="email"
                 required
                 fullWidth
-                error={!!state.error}
-                InputProps={{
-                  style: {
-                    color: theme.palette.text.primary,
-                    background: theme.palette.background.default,
-                  },
-                }}
-                InputLabelProps={{
-                  style: { color: theme.palette.text.secondary },
-                }}
-              />
-            </FormControl>
-
-            <FormControl>
-              <TextField
-                name="password"
-                label="Mot de passe"
-                variant="outlined"
-                type="password"
-                autoComplete="current-password"
-                required
-                fullWidth
-                error={!!state.error}
+                error={!!state.message && !state.success}
                 InputProps={{
                   style: {
                     color: theme.palette.text.primary,
@@ -211,50 +175,50 @@ export default function AdminLoginPage(props: {
             </FormControl>
 
             <Stack spacing={2}>
-              <StyledButton
-                type="submit"
-                fullWidth
+              <StyledButton 
+                type="submit" 
+                fullWidth 
                 disabled={isLoading}
-                startIcon={
-                  isLoading ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : null
-                }
+                startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
               >
-                {isLoading ? "Connexion..." : "Se connecter"}
+                {isLoading ? "Envoi en cours..." : "Envoyer le lien"}
               </StyledButton>
 
               <Button
                 component={NextLink}
                 href="/auth/login"
-                variant="text"
+                variant="outlined"
                 fullWidth
                 sx={{
                   textTransform: "none",
-                  color: theme.palette.text.secondary,
-                  "&:hover": {
-                    color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                  "&:hover": { 
+                    background: `${theme.palette.primary.main}10`,
+                    borderColor: theme.palette.primary.dark,
+                    color: theme.palette.primary.dark,
                   },
                 }}
               >
-                ← Retour à la connexion utilisateur
+                Retour à la connexion
               </Button>
             </Stack>
           </Box>
 
-          <Typography
-            sx={{
+          <Typography 
+            variant="body2" 
+            sx={{ 
               textAlign: "center",
-              fontSize: "0.75rem",
               color: theme.palette.text.secondary,
-              mt: 2,
+              fontSize: "0.75rem",
               fontStyle: "italic",
             }}
           >
-            Cette page est sécurisée. Vos informations sont protégées.
+            Le lien de réinitialisation expirera après 1 heure.
           </Typography>
         </Card>
       </FullScreenContainer>
     </AppTheme>
   );
-}
+} 

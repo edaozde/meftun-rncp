@@ -2,19 +2,16 @@
 
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
 import { ReactElement } from "react";
-import { AuthContext } from "./auth/auth-context";
+import AuthProvider from "./auth/auth-context";
 
 interface ProviderProps {
   children: ReactElement[];
-  authenticated: boolean;
 }
 
-export default function Providers({ children, authenticated }: ProviderProps) {
+export default function Providers({ children }: ProviderProps) {
   return (
     <AppRouterCacheProvider>
-        <AuthContext.Provider value={authenticated}>
-          {children}
-        </AuthContext.Provider>
+      <AuthProvider>{children}</AuthProvider>
     </AppRouterCacheProvider>
   );
 }

@@ -2,16 +2,19 @@
 
 import { jwtDecode } from "jwt-decode";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { FormResponse } from "@/app/common/interfaces/form-response.interface";
 import { API_URL } from "@/app/common/constants/api";
 import { getErrorMessage } from "@/app/common/util/errors";
-import { redirect } from "next/navigation";
 import { AUTHENTICATION_COOKIE } from "../auth-cookies";
 
 const MAX_ATTEMPTS = 5; // 🔥 Bloque après 5 essais
 const BLOCK_DURATION = 15 * 60 * 1000; // 🔥 Bloque 15 minutes
 
-export default async function adminLogin(_prevState: FormResponse, formData: FormData) {
+export default async function adminLogin(
+  _prevState: FormResponse,
+  formData: FormData
+) {
   try {
     const email = formData.get("email")?.toString().trim();
     const password = formData.get("password")?.toString().trim();
@@ -21,9 +24,14 @@ export default async function adminLogin(_prevState: FormResponse, formData: For
 
     // ✅ Vérification des tentatives échouées
     const attemptsCookie = cookies().get("admin_login_attempts")?.value;
-    let attempts = attemptsCookie ? JSON.parse(attemptsCookie) : { count: 0, timestamp: Date.now() };
+    const attempts = attemptsCookie
+      ? JSON.parse(attemptsCookie)
+      : { count: 0, timestamp: Date.now() };
 
-    if (attempts.count >= MAX_ATTEMPTS && Date.now() - attempts.timestamp < BLOCK_DURATION) {
+    if (
+      attempts.count >= MAX_ATTEMPTS &&
+      Date.now() - attempts.timestamp < BLOCK_DURATION
+    ) {
       return { error: "Trop de tentatives. Réessayez plus tard." };
     }
 
@@ -32,6 +40,10 @@ export default async function adminLogin(_prevState: FormResponse, formData: For
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
+
+    console.log("Status de la réponse:", res.status);
+    const responseData = await res.json().catch(() => null);
+    console.log("Données de la réponse:", responseData);
 
     if (!res.ok) {
       // 🔥 Augmente le compteur des tentatives échouées
@@ -45,13 +57,16 @@ export default async function adminLogin(_prevState: FormResponse, formData: For
         httpOnly: true,
       });
 
-      return { error: "Identifiants incorrects." };
+      return {
+        error: responseData?.message || "Identifiants incorrects.",
+        details: responseData,
+      };
     }
 
     // ✅ Connexion réussie → Réinitialisation des tentatives
     cookies().delete("admin_login_attempts");
     setAuthCookie(res);
-    redirect("/admin/dashboard");
+    return { error: "" };
   } catch (error) {
     console.error("Erreur lors de la connexion admin:", error);
     return { error: "Une erreur est survenue. Veuillez réessayer plus tard." };
@@ -65,7 +80,7 @@ const setAuthCookie = (response: Response) => {
     return;
   }
 
-  const tokenMatch = setCookieHeader.match(/(?:^|;\s*)authToken=([^;]*)/);
+  const tokenMatch = setCookieHeader.match(/(?:^|;\s*)Authentication=([^;]*)/);
   if (!tokenMatch) {
     console.error("❌ Impossible d'extraire le token !");
     return;

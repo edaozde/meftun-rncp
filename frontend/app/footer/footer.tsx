@@ -2,35 +2,42 @@
 
 import { Box, Container, Link, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 
-// ✅ Footer qui reste en bas et s'intègre bien au design
+// ✅ Footer avec HAUTEUR FIXE et bien positionné
 const FooterContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: "#4E342E", // ✅ Marron foncé pour uniformité avec le thème
-  color: "#FFFFFF", // ✅ Texte blanc pour un contraste élevé
-  padding: theme.spacing(3, 0),
-  textAlign: "center",
+  backgroundColor: theme.palette.primary.dark,
+  color: theme.palette.primary.contrastText,
+  height: "60px", // ✅ Hauteur FIXÉE
+  minHeight: "60px",
+  display: "flex",
+  alignItems: "center", // ✅ Centre le contenu verticalement
+  justifyContent: "center", // ✅ Centre horizontalement
   width: "100%",
-  marginTop: "auto", // ✅ Positionne le footer en bas si le contenu est insuffisant
+  marginTop: "auto", // ✅ Fixe en bas
 }));
 
 const FooterLink = styled(Link)(({ theme }) => ({
-  color: "#FFB300", // ✅ Or profond pour une meilleure visibilité
-  textDecoration: "none",
-  fontSize: "0.9rem",
-  transition: "color 0.3s ease",
-  fontWeight: "bold",
+  color: theme.palette.primary.contrastText,
+  fontSize: "0.8rem", // ✅ Texte plus petit pour un footer discret
+  fontWeight: "500",
+  margin: "0 8px", // ✅ Espacement entre les liens
+  transition: "all 0.3s ease",
+  opacity: 0.9,
   "&:hover": {
+    opacity: 1,
     textDecoration: "underline",
-    color: "#FFA000",
   },
 }));
 
 export default function Footer() {
+  const theme = useTheme();
+
   return (
-    <FooterContainer component="footer">
+    <FooterContainer component="footer" role="contentinfo">
       <Container maxWidth="xl">
         <Stack
-          direction={{ xs: "column", sm: "row" }}
+          direction="row"
           spacing={2}
           justifyContent="center"
           alignItems="center"
@@ -41,9 +48,6 @@ export default function Footer() {
             Politique de confidentialité
           </FooterLink>
         </Stack>
-        <Typography variant="body2" sx={{ mt: 2, fontSize: "0.8rem" }}>
-          © {new Date().getFullYear()} Meftun. Tous droits réservés.
-        </Typography>
       </Container>
     </FooterContainer>
   );

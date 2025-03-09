@@ -10,13 +10,14 @@ interface UserSession {
 }
 
 export async function getSession(): Promise<UserSession | null> {
-  const token = cookies().get(AUTHENTICATION_COOKIE)?.value;
-  if (!token) return null;
-
   try {
+    const token = cookies().get(AUTHENTICATION_COOKIE)?.value;
+    if (!token) return null;
+
     const decoded = jwtDecode<UserSession>(token);
     return decoded;
   } catch (error) {
+    console.error("Erreur lors de la récupération de la session:", error);
     return null;
   }
 }

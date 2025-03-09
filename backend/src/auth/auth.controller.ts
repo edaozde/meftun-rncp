@@ -4,11 +4,11 @@ import { Response } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import { AuthService } from './auth.service';
-import { AdminGuard } from './guards/admin-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -19,15 +19,26 @@ export class AuthController {
     return this.authService.login(user, response);
   }
 
-  // ✅ Correction de admin/login avec authentification + vérification admin
-  @UseGuards(LocalAuthGuard, AdminGuard) // 🔥 Ajout des deux guards
+  @UseGuards(LocalAuthGuard)
   @Post('admin/login')
   async adminLogin(
-    @CurrentUser() user: User,
+    @Body('email') email: string,
+    @Body('password') password: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log('📥 Admin authentifié :', user);
+    console.log('📥 Tentative de connexion admin avec email:', email);
+    return this.authService.adminLogin(email, password, res);
+  }
 
-    return this.authService.login(user, res); // ✅ Envoi bien le cookie JWT
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) response: Response) {
+    response.clearCookie('Authentication', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+    });
+    return { message: 'Déconnexion réussie' };
   }
 }

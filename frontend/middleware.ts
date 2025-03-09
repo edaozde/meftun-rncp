@@ -1,21 +1,28 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import authenticated from "./app/auth/authenticated";
-import { unauthenticatedRoutes } from "./app/common/constants/route";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   console.log("🔍 Middleware activé !");
   console.log("🚀 URL demandée :", request.nextUrl.pathname);
-  
+
+  // Pour les routes protégées, vérifier l'authentification
   const isAuthenticated = authenticated();
-  console.log("✅ Utilisateur authentifié :", isAuthenticated);
-  
-  const isUnauthenticatedRoute = unauthenticatedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route.path)
-  );
-  console.log("🔓 Page autorisée sans connexion :", isUnauthenticatedRoute);
-  
-  if (!isAuthenticated && !isUnauthenticatedRoute) {
-    console.log("⛔ Redirection vers /auth/login");
-    return Response.redirect(new URL("/auth/login", request.url));
+  if (!isAuthenticated) {
+    const loginUrl = request.nextUrl.pathname.startsWith("/admin")
+      ? "/auth/admin-login"
+      : "/auth/login";
+    return NextResponse.redirect(new URL(loginUrl, request.url));
   }
+
+  return NextResponse.next();
 }
+
+// Ne protéger que les routes spécifiques
+export const config = {
+  matcher: [
+    "/admin/:path*",
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/shop/:path*",
+  ],
+};

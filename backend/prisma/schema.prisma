@@ -65,7 +65,6 @@ model ProductImage {
   product   Product @relation(fields: [productId], references: [id])
 }
 
-
 model Promotion {
   id         Int      @id @default(autoincrement())
   percentage Float

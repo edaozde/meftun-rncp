@@ -42,11 +42,14 @@ export class UsersService {
         data: {
           ...data,
           password: hashedPassword, // 🔒 Stocke le mot de passe sécurisé
+          role: 'USER', // ✅ Définir le rôle par défaut
         },
         select: {
-          email: true,
           id: true,
-          acceptedPrivacyPolicy: true, // ✅ Vérification du consentement stocké
+          email: true,
+          password: true, // ✅ Nécessaire pour le login
+          role: true, // ✅ Nécessaire pour le login
+          acceptedPrivacyPolicy: true,
         },
       });
 
@@ -82,6 +85,14 @@ export class UsersService {
     try {
       const user = await this.prismaService.user.findUniqueOrThrow({
         where: filter,
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          role: true,
+          acceptedPrivacyPolicy: true,
+          createdAt: true,
+        },
       });
 
       this.logger.debug(

@@ -21,8 +21,13 @@ export class UsersController {
   @Post()
   @UseInterceptors(NoFilesInterceptor())
   @HttpCode(201)
-  createUser(@Body() request: CreateUserRequest) {
-    return this.usersService.createUser(request);
+  async createUser(@Body() request: CreateUserRequest) {
+    const user = await this.usersService.createUser(request);
+    return {
+      email: user.email,
+      id: user.id,
+      acceptedPrivacyPolicy: user.acceptedPrivacyPolicy,
+    };
   }
 
   @Get('me')

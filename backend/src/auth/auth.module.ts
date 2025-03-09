@@ -1,6 +1,7 @@
 import { JwtModule } from '@nestjs/jwt';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
@@ -9,17 +10,17 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const secret = configService.get<string>('JWT_SECRET_USER'); // ✅ On utilise le bon secret
-        const expiration = configService.get<string>('JWT_EXPIRATION');
-
-        console.log('🔑 JWT_SECRET utilisé :', secret);
-        console.log('⏳ Expiration :', expiration);
+        const userSecret = configService.getOrThrow<string>('JWT_SECRET_USER');
+        const adminSecret =
+          configService.getOrThrow<string>('JWT_SECRET_ADMIN');
+        const expiration = configService.getOrThrow<string>('JWT_EXPIRATION');
 
         return {
-          secret,
+          secret: userSecret, // Secret par défaut pour les utilisateurs
           signOptions: {
             expiresIn: expiration,
           },
@@ -32,5 +33,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

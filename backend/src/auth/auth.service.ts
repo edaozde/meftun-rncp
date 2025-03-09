@@ -7,6 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { TokenPayload } from './token.payload.interface';
 import { JwtService } from '@nestjs/jwt';
 
+type LoginUser = Omit<User, 'createdAt'>;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -15,40 +17,49 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(user: User, response: Response) {
-    const secretKey =
-      user.role === 'ADMIN' || user.role === 'SUPERADMIN'
-        ? this.configService.getOrThrow<string>('JWT_SECRET_ADMIN')
-        : this.configService.getOrThrow<string>('JWT_SECRET_USER');
+  async login(user: LoginUser, response: Response) {
+    try {
+      const secretKey =
+        user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+          ? this.configService.getOrThrow<string>('JWT_SECRET_ADMIN')
+          : this.configService.getOrThrow<string>('JWT_SECRET_USER');
 
-    const expiresIn =
-      user.role === 'ADMIN' || user.role === 'SUPERADMIN'
-        ? this.configService.getOrThrow<string>('JWT_EXPIRATION_ADMIN')
-        : this.configService.getOrThrow<string>('JWT_EXPIRATION');
+      const expiresIn =
+        user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+          ? this.configService.getOrThrow<string>('JWT_EXPIRATION_ADMIN')
+          : this.configService.getOrThrow<string>('JWT_EXPIRATION');
 
-    const tokenPayload: TokenPayload = {
-      userId: user.id,
-      role: user.role,
-    };
+      const tokenPayload: TokenPayload = {
+        userId: user.id,
+        role: user.role,
+      };
 
-    const token = this.jwtService.sign(tokenPayload, {
-      secret: secretKey,
-      expiresIn,
-    });
+      const token = this.jwtService.sign(tokenPayload, {
+        secret: secretKey,
+        expiresIn,
+      });
 
-    response.cookie('Authentication', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: expiresIn.includes('h')
-        ? parseInt(expiresIn) * 3600000
-        : parseInt(expiresIn) * 1000,
-    });
+      console.log('✅ Token généré avec succès');
 
-    return { message: 'Connexion réussie', tokenPayload };
+      response.cookie('Authentication', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: expiresIn.includes('h')
+          ? parseInt(expiresIn) * 3600000
+          : parseInt(expiresIn) * 1000,
+        path: '/',
+      });
+
+      console.log('✅ Cookie défini avec succès');
+
+      return { message: 'Connexion réussie', tokenPayload };
+    } catch (error) {
+      console.error('❌ Erreur lors de la connexion:', error);
+      throw new UnauthorizedException('Erreur lors de la connexion');
+    }
   }
 
-  // ✅ Ajout de la méthode adminLogin
   async adminLogin(email: string, password: string, response: Response) {
     const user = await this.usersService.getUser({ email });
 
@@ -61,9 +72,9 @@ export class AuthService {
       throw new UnauthorizedException('Mot de passe incorrect.');
     }
 
-    console.log('✅ Admin authentifié, envoi de la réponse...'); // 🔥 Ajout du log
+    console.log('✅ Admin authentifié, envoi de la réponse...');
 
-    return this.login(user, response); // Vérifie bien que cette ligne est exécutée
+    return this.login(user, response);
   }
 
   async verifyUser(email: string, password: string) {

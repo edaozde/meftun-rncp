@@ -1,36 +1,39 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
 import {
   Box,
   Button,
-  Checkbox,
   CssBaseline,
-  Divider,
-  FormControlLabel,
-  FormControl,
-  Link,
   TextField,
   Typography,
   Stack,
   Card as MuiCard,
+  FormControl,
+  CircularProgress,
+  Divider,
+  Link,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
-import { styled, useTheme } from "@mui/material/styles"; // ✅ Ajout de `useTheme`
+import { styled, useTheme } from "@mui/material/styles";
 import NextLink from "next/link";
 import { useFormState } from "react-dom";
 import createUser from "./create-user";
-import ColorModeSelect from "@/shared-theme/ColorModeSelect";
 import AppTheme from "@/shared-theme/AppTheme";
+import { useState, useEffect } from "react";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { useRouter } from "next/navigation";
+import { useContext } from "react";
+import { AuthContext } from "../auth-context";
 
-// ✅ **Utilisation du thème global**
 const FullScreenContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
   width: "100vw",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  backgroundColor: theme.palette.background.default, // 🎨 Thème global
+  backgroundColor: theme.palette.background.default,
   padding: theme.spacing(2),
 }));
 
@@ -42,51 +45,129 @@ const Card = styled(MuiCard)(({ theme }) => ({
   padding: theme.spacing(4),
   gap: theme.spacing(2),
   borderRadius: theme.shape.borderRadius * 2,
-  backgroundColor: theme.palette.background.paper, // 🎨 Cohérence avec le thème
+  backgroundColor: theme.palette.background.paper,
   color: theme.palette.text.primary,
   boxShadow: theme.shadows[5],
   transition: "all 0.3s ease",
-  "&:hover": { boxShadow: theme.shadows[10] },
-  [theme.breakpoints.down("sm")]: { padding: theme.spacing(3), maxWidth: "90%" },
+  border: `2px solid ${theme.palette.primary.main}20`,
+  "&:hover": {
+    boxShadow: theme.shadows[10],
+    borderColor: `${theme.palette.primary.main}40`,
+  },
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(2),
+    maxWidth: "95%",
+    margin: theme.spacing(1),
+  },
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
-  background: theme.palette.primary.main, // 🎨 Utilisation du thème
+  background: theme.palette.primary.main,
   color: theme.palette.primary.contrastText,
   padding: theme.spacing(1.5),
   fontSize: "1rem",
   fontWeight: 600,
   textTransform: "none",
-  transition: "background 0.3s ease, transform 0.2s ease",
-  "&:hover": { background: theme.palette.primary.dark, transform: "scale(1.02)" },
+  transition: "all 0.3s ease",
+  "&:hover": {
+    background: theme.palette.primary.dark,
+    transform: "translateY(-1px)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  },
   "&:disabled": { background: theme.palette.grey[500], color: "#FFFFFF" },
 }));
 
-export default function Signup(props: { disableCustomTheme?: boolean }) {
+export default function SignupPage(props: { disableCustomTheme?: boolean }) {
+  const router = useRouter();
+  const { refreshSession } = useContext(AuthContext);
   const [state, formAction] = useFormState(createUser, { error: "" });
-  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
-  const theme = useTheme(); // ✅ Récupération du thème global
+  const [isLoading, setIsLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const theme = useTheme();
+
+  useEffect(() => {
+    console.log("State changed:", state);
+    if (state?.success) {
+      console.log("Success detected, redirecting...");
+      (async () => {
+        await refreshSession();
+        router.push("/");
+      })();
+    }
+  }, [state, router, refreshSession]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isLoading) return;
+
+    setIsLoading(true);
+    const formData = new FormData(e.currentTarget);
+    formData.set("acceptedTerms", acceptedTerms ? "true" : "false");
+    await formAction(formData);
+    setIsLoading(false);
+  };
 
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
-      <ColorModeSelect sx={{ position: "fixed", top: "1rem", right: "1rem" }} />
-
       <FullScreenContainer>
-        <Card variant="outlined">
+        <Card variant="outlined" role="form" aria-labelledby="signup-title">
           <Typography
+            id="signup-title"
             component="h1"
             variant="h4"
             sx={{
               textAlign: "center",
               fontWeight: "bold",
               color: theme.palette.primary.main,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
             }}
           >
-            Inscription
+            <PersonAddIcon sx={{ fontSize: 32 }} />
+            Créer un compte
           </Typography>
 
-          <Box component="form" action={formAction} noValidate sx={{ display: "flex", flexDirection: "column", width: "100%", gap: 2 }}>
+          <Typography
+            sx={{
+              textAlign: "center",
+              fontSize: "0.9rem",
+              color: theme.palette.text.secondary,
+              mb: 2,
+            }}
+          >
+            Rejoignez notre communauté et profitez d'une expérience
+            personnalisée.
+          </Typography>
+
+          {state.error && (
+            <Typography
+              color="error"
+              sx={{
+                textAlign: "center",
+                backgroundColor: `${theme.palette.error.main}10`,
+                padding: 1,
+                borderRadius: 1,
+                fontSize: "0.875rem",
+              }}
+            >
+              {state.error}
+            </Typography>
+          )}
+
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              gap: 2,
+            }}
+          >
             <FormControl>
               <TextField
                 name="email"
@@ -97,11 +178,15 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                 required
                 fullWidth
                 error={!!state.error}
-                helperText={state.error}
                 InputProps={{
-                  style: { color: theme.palette.text.primary, background: theme.palette.background.default },
+                  style: {
+                    color: theme.palette.text.primary,
+                    background: theme.palette.background.default,
+                  },
                 }}
-                InputLabelProps={{ style: { color: theme.palette.text.secondary } }}
+                InputLabelProps={{
+                  style: { color: theme.palette.text.secondary },
+                }}
               />
             </FormControl>
 
@@ -115,36 +200,79 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                 required
                 fullWidth
                 error={!!state.error}
-                helperText={state.error}
                 InputProps={{
-                  style: { color: theme.palette.text.primary, background: theme.palette.background.default },
+                  style: {
+                    color: theme.palette.text.primary,
+                    background: theme.palette.background.default,
+                  },
                 }}
-                InputLabelProps={{ style: { color: theme.palette.text.secondary } }}
+                InputLabelProps={{
+                  style: { color: theme.palette.text.secondary },
+                }}
               />
             </FormControl>
 
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={acceptedPrivacy}
-                  onChange={(e) => setAcceptedPrivacy(e.target.checked)}
-                  sx={{ color: theme.palette.primary.main }} // 🎨 Cohérence avec le thème
+                  name="acceptedTerms"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  value="true"
+                  sx={{
+                    color: theme.palette.primary.main,
+                    "&.Mui-checked": {
+                      color: theme.palette.primary.main,
+                    },
+                  }}
                 />
               }
               label={
                 <Typography variant="body2">
-                  J’accepte les{" "}
-                  <Link href="/terms-and-conditions" target="_blank" sx={{ color: theme.palette.primary.main, fontWeight: "bold" }}>
-                    Termes et Conditions
+                  J'accepte les{" "}
+                  <Link
+                    href="/terms-and-conditions"
+                    target="_blank"
+                    sx={{
+                      color: theme.palette.primary.main,
+                      textDecoration: "none",
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                    }}
+                  >
+                    Conditions d'utilisation
+                  </Link>{" "}
+                  et la{" "}
+                  <Link
+                    href="/privacy-policy"
+                    target="_blank"
+                    sx={{
+                      color: theme.palette.primary.main,
+                      textDecoration: "none",
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                    }}
+                  >
+                    Politique de confidentialité
                   </Link>
-                  .
                 </Typography>
               }
             />
 
             <Stack spacing={2}>
-              <StyledButton type="submit" fullWidth disabled={!acceptedPrivacy}>
-                S&apos;inscrire
+              <StyledButton
+                type="submit"
+                fullWidth
+                disabled={isLoading || !acceptedTerms}
+                startIcon={
+                  isLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : null
+                }
+              >
+                {isLoading ? "Création en cours..." : "Créer mon compte"}
               </StyledButton>
 
               <Button
@@ -157,21 +285,31 @@ export default function Signup(props: { disableCustomTheme?: boolean }) {
                   fontWeight: "bold",
                   borderColor: theme.palette.primary.main,
                   color: theme.palette.primary.main,
-                  "&:hover": { background: theme.palette.primary.light },
+                  "&:hover": {
+                    background: `${theme.palette.primary.main}10`,
+                    borderColor: theme.palette.primary.dark,
+                    color: theme.palette.primary.dark,
+                  },
                 }}
               >
-                Se connecter
+                Déjà un compte ? Se connecter
               </Button>
             </Stack>
           </Box>
 
           <Divider sx={{ my: 2 }} />
 
-          <Typography sx={{ textAlign: "center", fontSize: "0.9rem" }}>
-            Déjà un compte ?{" "}
-            <Link component={NextLink} href="/auth/login" variant="body2" sx={{ fontWeight: "bold", color: theme.palette.primary.main }}>
-              Se connecter
-            </Link>
+          <Typography
+            variant="body2"
+            sx={{
+              textAlign: "center",
+              color: theme.palette.text.secondary,
+              fontSize: "0.75rem",
+              fontStyle: "italic",
+            }}
+          >
+            Vos données sont protégées et ne seront jamais partagées avec des
+            tiers.
           </Typography>
         </Card>
       </FullScreenContainer>

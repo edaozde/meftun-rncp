@@ -4,10 +4,8 @@ import "./globals.css";
 import Header from "./header/header";
 import Footer from "./footer/footer";
 import Providers from "./providers";
-import authenticated from "./auth/authenticated";
-import logout from "./auth/logout";
 import { Box, CssBaseline } from "@mui/material";
-import AppTheme from "@/shared-theme/AppTheme"; 
+import AppTheme from "@/shared-theme/AppTheme";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,13 +14,11 @@ export const metadata: Metadata = {
   description: "Application de gestion",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const isAuthenticated = await authenticated();
-
   return (
-    <html lang="fr" style={{ height: "100%", overflow: "hidden" }}> 
+    <html lang="fr" style={{ height: "100%", overflow: "hidden" }}>
       {/* ✅ Empêche tout scroll global */}
       <body
         className={inter.className}
@@ -36,16 +32,16 @@ export default async function RootLayout({
         }}
       >
         <AppTheme>
-          <Providers authenticated={isAuthenticated}>
+          <Providers>
             <CssBaseline />
 
             {/* ✅ HEADER FIXÉ EN HAUT */}
-            <Header logout={logout} />
+            <Header />
 
             {/* ✅ CONTENEUR PRINCIPAL QUI PREND TOUT L'ESPACE DISPONIBLE */}
             <Box
               sx={{
-                flex: 1, // ✅ Fait grandir le contenu pour occuper tout l’espace restant
+                flex: 1, // ✅ Fait grandir le contenu pour occuper tout l'espace restant
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -63,7 +59,7 @@ export default async function RootLayout({
               <Footer />
             </Box>
           </Providers>
-        </AppTheme> 
+        </AppTheme>
       </body>
     </html>
   );
