@@ -2,39 +2,35 @@
 
 import { useEffect, useState } from "react";
 import {
-  Container,
   Typography,
-  Grid,
-  Card,
-  CardContent,
-  Button,
   Box,
-  TextField,
-  InputAdornment,
+  Button,
   IconButton,
   Tooltip,
+  Paper,
   Chip,
-  Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridToolbar,
+} from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Product } from "@/app/products/interfaces/product.interface";
-import getProducts from "@/app/products/actions/get-products";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import Image from "next/image";
+import { Product as ProductType } from "../../products/interfaces/product.interface";
+import getProducts from "../../products/actions/get-products";
 import { useRouter } from "next/navigation";
+import { useTheme } from "@mui/material/styles";
 
 export default function AdminProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const router = useRouter();
+  const theme = useTheme();
 
   useEffect(() => {
     loadProducts();
@@ -42,8 +38,13 @@ export default function AdminProducts() {
 
   const loadProducts = async () => {
     try {
+      setLoading(true);
       const data = await getProducts();
-      setProducts(data);
+      const uniqueProducts = data.filter(
+        (product, index, self) =>
+          index === self.findIndex((p) => p.id === product.id)
+      );
+      setProducts(uniqueProducts);
     } catch (error) {
       console.error("Erreur lors du chargement des produits:", error);
     } finally {
@@ -51,17 +52,14 @@ export default function AdminProducts() {
     }
   };
 
-  const handleDelete = async (product: Product) => {
-    setSelectedProduct(product);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!selectedProduct) return;
+  const handleDelete = async (productId: number) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
+      return;
+    }
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products/${selectedProduct.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -69,22 +67,154 @@ export default function AdminProducts() {
       );
 
       if (response.ok) {
-        setProducts(products.filter((p) => p.id !== selectedProduct.id));
-        setDeleteDialogOpen(false);
+        setProducts(products.filter((p) => p.id !== productId));
       }
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
     }
   };
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getTotalStock = (product: ProductType) => {
+    return product.variants.reduce(
+      (total, variant) => total + variant.stock,
+      0
+    );
+  };
+
+  const columns: GridColDef[] = [
+    {
+      field: "image",
+      headerName: "Image",
+      width: 100,
+      renderCell: (params: GridRenderCellParams<ProductType>) => {
+        const hasImage = params.row.images && params.row.images.length > 0;
+        return (
+          <Box sx={{ position: "relative", width: 50, height: 50 }}>
+            {hasImage ? (
+              <Image
+                src={`${process.env.NEXT_PUBLIC_API_URL}${params.row.images[0].url}`}
+                alt={params.row.name}
+                fill
+                style={{ objectFit: "cover", borderRadius: 4 }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: 50,
+                  height: 50,
+                  bgcolor: "grey.100",
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "grey.500",
+                }}
+              >
+                No img
+              </Box>
+            )}
+          </Box>
+        );
+      },
+    },
+    {
+      field: "name",
+      headerName: "Nom",
+      flex: 1,
+      minWidth: 200,
+    },
+    {
+      field: "price",
+      headerName: "Prix",
+      width: 120,
+      renderCell: (params) => (
+        <Typography>
+          {new Intl.NumberFormat("fr-FR", {
+            style: "currency",
+            currency: "EUR",
+          }).format(params.row.price)}
+        </Typography>
+      ),
+    },
+    {
+      field: "stock",
+      headerName: "Stock Total",
+      width: 120,
+      renderCell: (params) => {
+        const totalStock = getTotalStock(params.row);
+        return (
+          <Chip
+            label={totalStock}
+            color={
+              totalStock < 10
+                ? "error"
+                : totalStock < 20
+                ? "warning"
+                : "success"
+            }
+            size="small"
+          />
+        );
+      },
+    },
+    {
+      field: "variants",
+      headerName: "Variantes",
+      width: 200,
+      renderCell: (params) => (
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          {params.row.variants.map((variant, index) => (
+            <Chip
+              key={index}
+              label={`${variant.size}`}
+              size="small"
+              variant="outlined"
+            />
+          ))}
+        </Box>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 150,
+      renderCell: (params) => (
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Tooltip title="Voir">
+            <IconButton
+              size="small"
+              onClick={() => router.push(`/admin/products/${params.row.id}`)}
+            >
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Modifier">
+            <IconButton
+              size="small"
+              onClick={() =>
+                router.push(`/admin/products/${params.row.id}/edit`)
+              }
+              color="primary"
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Supprimer">
+            <IconButton
+              size="small"
+              onClick={() => handleDelete(params.row.id)}
+              color="error"
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box>
       <Box
         sx={{
           mb: 4,
@@ -93,139 +223,56 @@ export default function AdminProducts() {
           alignItems: "center",
         }}
       >
-        <Typography
-          variant="h4"
-          component="h1"
-          sx={{ fontWeight: "bold", color: "#2D7DD2" }}
-        >
+        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
           Gestion des Produits
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => router.push("/admin/products/new")}
-          sx={{ backgroundColor: "#2D7DD2" }}
         >
           Nouveau Produit
         </Button>
       </Box>
 
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Rechercher un produit..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      <Grid container spacing={3}>
-        {filteredProducts.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card sx={{ height: "100%" }}>
-              <CardContent>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    mb: 2,
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    component="h2"
-                    sx={{ fontWeight: "bold" }}
-                  >
-                    {product.name}
-                  </Typography>
-                  <Stack direction="row" spacing={1}>
-                    <Tooltip title="Modifier">
-                      <IconButton
-                        onClick={() =>
-                          router.push(`/admin/products/edit/${product.id}`)
-                        }
-                        color="primary"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Supprimer">
-                      <IconButton
-                        onClick={() => handleDelete(product)}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                </Box>
-
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  {product.description}
-                </Typography>
-
-                <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-                  <Chip
-                    label={`${product.variants.length} variantes`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
-                  {product.variants.some((v) => v.stock < 5) && (
-                    <Chip label="Stock Faible" size="small" color="error" />
-                  )}
-                </Box>
-
-                <Typography
-                  variant="h6"
-                  color="primary"
-                  sx={{ fontWeight: "bold" }}
-                >
-                  {new Intl.NumberFormat("fr-FR", {
-                    style: "currency",
-                    currency: "EUR",
-                    minimumFractionDigits: 2,
-                  }).format(product.price)}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+      <Paper
+        sx={{
+          height: "calc(100vh - 220px)",
+          width: "100%",
+          bgcolor: "background.paper",
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
       >
-        <DialogTitle>Confirmer la suppression</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Êtes-vous sûr de vouloir supprimer le produit "
-            {selectedProduct?.name}" ? Cette action est irréversible.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
-            Supprimer
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+        <DataGrid
+          rows={products}
+          columns={columns}
+          loading={loading}
+          disableRowSelectionOnClick
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{
+            toolbar: {
+              showQuickFilter: true,
+              quickFilterProps: { debounceMs: 500 },
+            },
+          }}
+          sx={{
+            border: "none",
+            "& .MuiDataGrid-cell:focus": {
+              outline: "none",
+            },
+            "& .MuiDataGrid-row:hover": {
+              bgcolor: "action.hover",
+            },
+          }}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10 },
+            },
+          }}
+          pageSizeOptions={[10, 25, 50]}
+        />
+      </Paper>
+    </Box>
   );
 }

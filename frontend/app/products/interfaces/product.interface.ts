@@ -4,6 +4,12 @@ export interface Variant {
   stock: number;
 }
 
+export interface ProductImage {
+  id: number;
+  url: string;
+  productId: number;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -11,4 +17,5 @@ export interface Product {
   price: number;
   imageExists: boolean;
   variants: Variant[]; // 🔥 Ajout des variantes
+  images: ProductImage[];
 }

@@ -15,18 +15,17 @@ jest.mock('bcrypt', () => ({
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prismaService: jest.Mocked<PrismaService>;
+  let prismaService: PrismaService;
+
+  const prismaServiceMock = {
+    user: {
+      create: jest.fn(),
+      findUniqueOrThrow: jest.fn(),
+      delete: jest.fn(),
+    },
+  } as unknown as PrismaService;
 
   beforeEach(async () => {
-    // Création du mock PrismaService
-    const prismaServiceMock = {
-      user: {
-        create: jest.fn(),
-        findUniqueOrThrow: jest.fn(),
-        delete: jest.fn(),
-      },
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
@@ -38,7 +37,7 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prismaService = module.get(PrismaService);
+    prismaService = module.get<PrismaService>(PrismaService);
 
     // Reset tous les mocks avant chaque test
     jest.clearAllMocks();
@@ -70,7 +69,9 @@ describe('UsersService', () => {
 
     it('should create a user successfully', async () => {
       // Arrange
-      prismaService.user.create.mockResolvedValue(mockCreatedUser);
+      (prismaService.user.create as jest.Mock).mockResolvedValue(
+        mockCreatedUser,
+      );
 
       // Act
       const result = await service.createUser(createUserDto);
@@ -110,7 +111,9 @@ describe('UsersService', () => {
 
     it('should throw UnprocessableEntityException if email already exists', async () => {
       // Arrange
-      prismaService.user.create.mockRejectedValue({ code: 'P2002' });
+      (prismaService.user.create as jest.Mock).mockRejectedValue({
+        code: 'P2002',
+      });
 
       // Act & Assert
       await expect(service.createUser(createUserDto)).rejects.toThrow(
@@ -131,7 +134,9 @@ describe('UsersService', () => {
 
     it('should find a user by email', async () => {
       // Arrange
-      prismaService.user.findUniqueOrThrow.mockResolvedValue(mockUser);
+      (prismaService.user.findUniqueOrThrow as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
       const filter = { email: 'test@example.com' };
 
       // Act
@@ -154,7 +159,9 @@ describe('UsersService', () => {
 
     it('should find a user by id', async () => {
       // Arrange
-      prismaService.user.findUniqueOrThrow.mockResolvedValue(mockUser);
+      (prismaService.user.findUniqueOrThrow as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
       const filter = { id: 1 };
 
       // Act
@@ -177,7 +184,7 @@ describe('UsersService', () => {
 
     it('should throw an error if user not found', async () => {
       // Arrange
-      prismaService.user.findUniqueOrThrow.mockRejectedValue(
+      (prismaService.user.findUniqueOrThrow as jest.Mock).mockRejectedValue(
         new Error('Not found'),
       );
 
@@ -191,7 +198,7 @@ describe('UsersService', () => {
   describe('deleteUser', () => {
     it('should delete a user successfully', async () => {
       // Arrange
-      prismaService.user.delete.mockResolvedValue({});
+      (prismaService.user.delete as jest.Mock).mockResolvedValue({});
 
       // Act
       const result = await service.deleteUser(1);
@@ -205,7 +212,9 @@ describe('UsersService', () => {
 
     it('should throw UnprocessableEntityException if deletion fails', async () => {
       // Arrange
-      prismaService.user.delete.mockRejectedValue(new Error('Deletion failed'));
+      (prismaService.user.delete as jest.Mock).mockRejectedValue(
+        new Error('Deletion failed'),
+      );
 
       // Act & Assert
       await expect(service.deleteUser(1)).rejects.toThrow(

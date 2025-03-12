@@ -1,9 +1,9 @@
 import Grid from "@mui/material/Grid";
-import getProducts from "./actions/get-products";
-import Product from "./product";
+import getProducts from "../products/actions/get-products";
+import Product from "../products/product";
 import { Container } from "@mui/material";
 
-export default async function Products() {
+export default async function ShopPage() {
   const products = await getProducts();
 
   return (

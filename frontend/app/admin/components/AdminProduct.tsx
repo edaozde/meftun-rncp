@@ -1,32 +1,32 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
   Stack,
   Typography,
   Chip,
-  Tooltip,
-  IconButton,
   Box,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
-import { Product as IProduct } from "./interfaces/product.interface";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Product as IProduct } from "../../products/interfaces/product.interface";
 import { useTheme } from "@mui/material/styles";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import Image from "next/image";
 import NoImageIcon from "@mui/icons-material/Image";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRouter } from "next/navigation";
 
-interface ProductProps {
+interface AdminProductProps {
   product: IProduct;
   onDelete: (id: number) => void;
 }
 
-export default function Product({ product, onDelete }: ProductProps) {
-  const router = useRouter();
+export default function AdminProduct({ product, onDelete }: AdminProductProps) {
   const theme = useTheme();
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
 
   const hasImage = product.images && product.images.length > 0;
@@ -128,9 +128,6 @@ export default function Product({ product, onDelete }: ProductProps) {
             }}
           >
             <NoImageIcon sx={{ fontSize: 40, opacity: 0.5 }} />
-            <Typography variant="caption" sx={{ opacity: 0.7 }}>
-              Pas d'image
-            </Typography>
           </Box>
         )}
       </Box>
@@ -173,9 +170,10 @@ export default function Product({ product, onDelete }: ProductProps) {
           {product.variants.map((variant, index) => (
             <Chip
               key={index}
-              label={`${variant.size} - ${variant.color}`}
+              label={`${variant.size} - ${variant.color} (${variant.stock})`}
               size="small"
               variant="outlined"
+              color={variant.stock < 5 ? "error" : "default"}
               sx={{
                 bgcolor: "background.paper",
                 borderColor: theme.palette.divider,
@@ -183,17 +181,6 @@ export default function Product({ product, onDelete }: ProductProps) {
             />
           ))}
         </Stack>
-
-        {/* Stock Warning */}
-        {product.variants.some((v) => v.stock < 5) && (
-          <Chip
-            label="Stock Faible"
-            color="error"
-            size="small"
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-        )}
 
         {/* Price */}
         <Typography

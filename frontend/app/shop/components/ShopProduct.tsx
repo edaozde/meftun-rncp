@@ -6,26 +6,20 @@ import {
   Stack,
   Typography,
   Chip,
-  Tooltip,
-  IconButton,
   Box,
+  Button,
 } from "@mui/material";
-import { Product as IProduct } from "./interfaces/product.interface";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Product as IProduct } from "../../products/interfaces/product.interface";
 import { useTheme } from "@mui/material/styles";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import Image from "next/image";
 import NoImageIcon from "@mui/icons-material/Image";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
-interface ProductProps {
+interface ShopProductProps {
   product: IProduct;
-  onDelete: (id: number) => void;
 }
 
-export default function Product({ product, onDelete }: ProductProps) {
-  const router = useRouter();
+export default function ShopProduct({ product }: ShopProductProps) {
   const theme = useTheme();
   const [imageError, setImageError] = useState(false);
 
@@ -38,58 +32,11 @@ export default function Product({ product, onDelete }: ProductProps) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        position: "relative",
-        overflow: "visible",
         "&:hover": {
-          boxShadow: theme.shadows[8],
+          boxShadow: theme.shadows[4],
         },
       }}
     >
-      {/* Actions */}
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          position: "absolute",
-          top: -20,
-          right: 8,
-          zIndex: 2,
-        }}
-      >
-        <Tooltip title="Modifier">
-          <IconButton
-            onClick={() => router.push(`/admin/products/${product.id}/edit`)}
-            sx={{
-              bgcolor: "background.paper",
-              boxShadow: theme.shadows[2],
-              "&:hover": {
-                bgcolor: theme.palette.primary.light,
-                color: "white",
-              },
-            }}
-            size="small"
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Supprimer">
-          <IconButton
-            onClick={() => onDelete(product.id)}
-            sx={{
-              bgcolor: "background.paper",
-              boxShadow: theme.shadows[2],
-              "&:hover": {
-                bgcolor: theme.palette.error.light,
-                color: "white",
-              },
-            }}
-            size="small"
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Stack>
-
       {/* Image */}
       <Box
         sx={{
@@ -128,9 +75,6 @@ export default function Product({ product, onDelete }: ProductProps) {
             }}
           >
             <NoImageIcon sx={{ fontSize: 40, opacity: 0.5 }} />
-            <Typography variant="caption" sx={{ opacity: 0.7 }}>
-              Pas d'image
-            </Typography>
           </Box>
         )}
       </Box>
@@ -184,32 +128,41 @@ export default function Product({ product, onDelete }: ProductProps) {
           ))}
         </Stack>
 
-        {/* Stock Warning */}
-        {product.variants.some((v) => v.stock < 5) && (
-          <Chip
-            label="Stock Faible"
-            color="error"
-            size="small"
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-        )}
+        {/* Price and Add to Cart */}
+        <Box sx={{ 
+          mt: "auto",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              color: theme.palette.primary.main,
+            }}
+          >
+            {new Intl.NumberFormat("fr-FR", {
+              style: "currency",
+              currency: "EUR",
+            }).format(product.price)}
+          </Typography>
 
-        {/* Price */}
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: "bold",
-            color: theme.palette.primary.main,
-            mt: "auto",
-          }}
-        >
-          {new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-          }).format(product.price)}
-        </Typography>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<ShoppingCartIcon />}
+            sx={{
+              bgcolor: theme.palette.primary.main,
+              "&:hover": {
+                bgcolor: theme.palette.primary.dark,
+              },
+            }}
+          >
+            Ajouter
+          </Button>
+        </Box>
       </CardContent>
     </Card>
   );
-}
+} 
