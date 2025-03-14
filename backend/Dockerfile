@@ -44,5 +44,5 @@ RUN ls -la dist/
 
 # Commande de démarrage complète
 CMD /bin/sh -c '\
-    npx prisma db push --accept-data-loss --force --skip-generate && \
+    npx prisma db push --accept-data-loss --force-reset --skip-generate && \
     node dist/main.js'
