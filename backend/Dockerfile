@@ -22,12 +22,11 @@ COPY prisma /app/prisma
 # Générer le client Prisma avec le bon schema.prisma
 RUN npx prisma generate
 
-
 # Compiler le code TypeScript
 RUN npm run build
 
 # Exposer le port
 EXPOSE 3001
 
-# 🔥 Condition : en mode dev, utiliser `start:dev`, sinon `start:prod`
-CMD if [ "$NODE_ENV" = "development" ]; then npx prisma migrate dev && npm run start:dev; else npm run build && npx prisma migrate deploy && npm run start:prod; fi
+# Nouvelle commande qui inclut le db push
+CMD npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && npm run start:prod
