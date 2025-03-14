@@ -1,32 +1,39 @@
-# Étape 1 : Utiliser une image Node.js optimisée
-FROM node:18-slim
+# Build stage
+FROM node:18-slim AS builder
 
-# Installer OpenSSL et autres dépendances nécessaires
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier uniquement les fichiers package.json pour optimiser le cache
+# Copier package.json et package-lock.json
 COPY package*.json ./
 
-# Installer toutes les dépendances, y compris devDependencies
-RUN npm install --production=false
+# Installer toutes les dépendances
+RUN npm install
 
-# Copier le reste du code source
+# Copier le reste des fichiers
 COPY . .
 
-# Copier le dossier Prisma avant de générer Prisma
-COPY prisma /app/prisma
-
-# Générer le client Prisma avec le bon schema.prisma
+# Générer Prisma Client
 RUN npx prisma generate
 
-# Compiler le code TypeScript
+# Build l'application
 RUN npm run build
 
-# Supprimer les devDependencies après le build
-RUN npm prune --production
+# Production stage
+FROM node:18-slim
 
-# Commande de démarrage avec fallback
-CMD npx prisma migrate deploy || npx prisma db push --accept-data-loss && npm run start:prod
+WORKDIR /app
+
+# Copier package.json et package-lock.json
+COPY package*.json ./
+
+# Installer uniquement les dépendances de production
+RUN npm install --production
+
+# Copier les fichiers buildés et prisma
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+# Commande de démarrage
+CMD npx prisma migrate deploy && node dist/main
