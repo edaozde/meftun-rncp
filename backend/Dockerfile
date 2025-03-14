@@ -3,6 +3,9 @@ FROM node:18-slim AS builder
 
 WORKDIR /app
 
+# Installer OpenSSL pour Prisma
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # Copier package.json et package-lock.json
 COPY package*.json ./
 
@@ -23,6 +26,9 @@ FROM node:18-slim
 
 WORKDIR /app
 
+# Installer OpenSSL pour Prisma
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # Copier package.json et package-lock.json
 COPY package*.json ./
 
@@ -35,5 +41,11 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Commande de démarrage
-CMD npx prisma migrate deploy && node dist/main
+# Script de démarrage qui attend que la base de données soit prête
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+
+# Commande de démarrage qui gère tous les cas
+CMD /bin/sh -c '\
+    npx prisma generate && \
+    (npx prisma migrate deploy || npx prisma db push --accept-data-loss) && \
+    node dist/main'
