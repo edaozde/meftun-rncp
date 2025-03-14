@@ -15,10 +15,13 @@ RUN npm install
 # Copier le reste des fichiers
 COPY . .
 
-# Générer Prisma d'abord, puis build
+# Générer Prisma d'abord
 RUN npx prisma generate
-RUN npm run build
-RUN ls -la dist/
+
+# Build NestJS et vérifier
+RUN npm run build && \
+    ls -la dist/ && \
+    find dist/ -name "main.js" || echo "main.js not found!"
 
 # Production stage
 FROM node:18-slim
@@ -39,10 +42,10 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
-# Vérifier le contenu
-RUN ls -la dist/
+# Vérifier le build final
+RUN find dist/ -name "main.js" || echo "main.js not found in production stage!"
 
 # Commande de démarrage complète
 CMD /bin/sh -c '\
     npx prisma db push --accept-data-loss --force-reset --skip-generate && \
-    node dist/main.js'
+    node dist/src/main.js'
