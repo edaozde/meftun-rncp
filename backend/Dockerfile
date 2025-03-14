@@ -25,5 +25,5 @@ RUN npx prisma generate
 # Compiler le code TypeScript
 RUN npm run build
 
-# Nouvelle commande qui inclut le db push
-CMD npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && npm run start:prod
+# Commande de démarrage avec fallback
+CMD npx prisma migrate deploy || npx prisma db push --accept-data-loss && npm run start:prod
