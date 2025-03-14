@@ -10,8 +10,8 @@ WORKDIR /app
 # Copier uniquement les fichiers package.json pour optimiser le cache
 COPY package*.json ./
 
-# Installer les dépendances
-RUN npm install
+# Installer toutes les dépendances, y compris devDependencies
+RUN npm install --production=false
 
 # Copier le reste du code source
 COPY . .
@@ -24,6 +24,9 @@ RUN npx prisma generate
 
 # Compiler le code TypeScript
 RUN npm run build
+
+# Supprimer les devDependencies après le build
+RUN npm prune --production
 
 # Commande de démarrage avec fallback
 CMD npx prisma migrate deploy || npx prisma db push --accept-data-loss && npm run start:prod
