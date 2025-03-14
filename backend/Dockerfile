@@ -15,9 +15,9 @@ RUN npm install
 # Copier le reste des fichiers
 COPY . .
 
-# Build et vérification
-RUN npm run build
+# Générer Prisma d'abord, puis build
 RUN npx prisma generate
+RUN npm run build
 RUN ls -la dist/
 
 # Production stage
