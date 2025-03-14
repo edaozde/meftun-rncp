@@ -15,11 +15,10 @@ RUN npm install
 # Copier le reste des fichiers
 COPY . .
 
-# Générer Prisma Client
-RUN npx prisma generate
-
-# Build l'application
+# Build et vérification
 RUN npm run build
+RUN npx prisma generate
+RUN ls -la dist/
 
 # Production stage
 FROM node:18-slim
@@ -35,17 +34,15 @@ COPY package*.json ./
 # Installer uniquement les dépendances de production
 RUN npm install --production
 
-# Copier les fichiers buildés et prisma
+# Copier les fichiers buildés et Prisma
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
-# Script de démarrage qui attend que la base de données soit prête
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+# Vérifier le contenu
+RUN ls -la dist/
 
-# Commande de démarrage qui gère tous les cas
+# Commande de démarrage complète
 CMD /bin/sh -c '\
-    npx prisma generate && \
-    (npx prisma migrate deploy || npx prisma db push --accept-data-loss) && \
-    node dist/main'
+    npx prisma db push --accept-data-loss --force --skip-generate && \
+    node dist/main.js'
