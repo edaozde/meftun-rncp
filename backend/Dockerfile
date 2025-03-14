@@ -25,8 +25,5 @@ RUN npx prisma generate
 # Compiler le code TypeScript
 RUN npm run build
 
-# Exposer le port
-EXPOSE 3001
-
 # Nouvelle commande qui inclut le db push
 CMD npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && npm run start:prod
