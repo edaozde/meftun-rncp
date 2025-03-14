@@ -20,8 +20,8 @@ RUN npx prisma generate
 
 # Build NestJS et vérifier
 RUN npm run build && \
-    ls -la dist/ && \
-    find dist/ -name "main.js" || echo "main.js not found!"
+    ls -la dist/src/ && \
+    find dist/src/ -name "main.js" || echo "main.js not found!"
 
 # Production stage
 FROM node:18-slim
@@ -43,7 +43,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 # Vérifier le build final
-RUN find dist/ -name "main.js" || echo "main.js not found in production stage!"
+RUN ls -la dist/src/ && find dist/src/ -name "main.js" || echo "main.js not found in production stage!"
 
 # Commande de démarrage complète
 CMD /bin/sh -c '\
