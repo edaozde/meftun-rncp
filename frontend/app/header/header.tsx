@@ -13,7 +13,7 @@ import {
   Box,
   Drawer,
   List,
-  ListItem,
+  ListItemButton,
   ListItemText,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -34,9 +34,10 @@ type NavigationRoutes = {
 // Configuration des routes
 const NAVIGATION_ROUTES: NavigationRoutes = {
   admin: [
-    { path: "/admin/dashboard", label: "Dashboard" },
-    { path: "/admin/logs", label: "Logs" },
     { path: "/admin/products", label: "Produits" },
+    { path: "/admin/dashboard", label: "Dashboard" },
+    { path: "/admin/clients", label: "Clients" },
+    { path: "/admin/audit-logs", label: "Logs d'audit" },
   ],
   auth: [
     { path: "/auth/login", label: "Connexion" },
@@ -47,7 +48,7 @@ const NAVIGATION_ROUTES: NavigationRoutes = {
 
 // Styles
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.palette.primary.dark,
   height: "64px",
   minHeight: "64px",
   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
@@ -73,21 +74,47 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const Logo = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.primary,
+  color: theme.palette.primary.contrastText,
   textDecoration: "none",
-  fontWeight: 700,
-  fontSize: "1.5rem",
+  fontWeight: 800,
+  fontSize: "2rem",
   fontFamily: "'Playfair Display', serif",
   flexGrow: 1,
-  letterSpacing: "0.5px",
+  letterSpacing: "2px",
   cursor: "pointer",
+  position: "relative",
+  textTransform: "uppercase",
+  background: "linear-gradient(45deg, #FFFFFF 30%, #FFE5E5 90%)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)",
+  transition: "all 0.3s ease",
+  "&:hover": {
+    transform: "scale(1.05)",
+    letterSpacing: "3px",
+  },
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    bottom: "-2px",
+    left: "0",
+    width: "100%",
+    height: "2px",
+    background: "linear-gradient(90deg, transparent, #FFFFFF, transparent)",
+    transform: "scaleX(0)",
+    transition: "transform 0.3s ease",
+  },
+  "&:hover::after": {
+    transform: "scaleX(1)",
+  },
   [theme.breakpoints.down("sm")]: {
-    fontSize: "1.25rem",
+    fontSize: "1.5rem",
+    letterSpacing: "1px",
   },
 }));
 
 const NavButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.primary.main,
+  color: theme.palette.primary.contrastText,
   fontSize: "0.875rem",
   fontWeight: 600,
   textTransform: "none",
@@ -96,8 +123,8 @@ const NavButton = styled(Button)(({ theme }) => ({
   transition: "all 0.3s ease",
   fontFamily: "'Montserrat', sans-serif",
   "&:hover": {
-    color: theme.palette.primary.dark,
-    backgroundColor: "rgba(183, 110, 121, 0.1)",
+    color: theme.palette.primary.contrastText,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   [theme.breakpoints.down("sm")]: {
     padding: "6px 12px",
@@ -106,104 +133,121 @@ const NavButton = styled(Button)(({ theme }) => ({
 }));
 
 // Sous-composants memoïsés
-const AdminNav = memo(({ onNavigate, currentPath }: { 
-  onNavigate: (path: string) => void;
-  currentPath: string;
-}) => (
-  <>
-    {NAVIGATION_ROUTES.admin.map((route) => (
-      <NavButton 
-        key={route.path} 
-        onClick={() => onNavigate(route.path)}
-        disabled={currentPath === route.path}
-        sx={{
-          backgroundColor: currentPath === route.path ? 'rgba(183, 110, 121, 0.1)' : 'transparent',
-        }}
-      >
-        {route.label}
-      </NavButton>
-    ))}
-  </>
-));
-AdminNav.displayName = "AdminNav";
-
-const AuthNav = memo(({ onNavigate, currentPath }: { 
-  onNavigate: (path: string) => void;
-  currentPath: string;
-}) => (
-  <>
-    {NAVIGATION_ROUTES.auth.map((route) => (
-      <NavButton 
-        key={route.path} 
-        onClick={() => onNavigate(route.path)}
-        disabled={currentPath === route.path}
-        sx={{
-          backgroundColor: currentPath === route.path ? 'rgba(183, 110, 121, 0.1)' : 'transparent',
-        }}
-      >
-        {route.label}
-      </NavButton>
-    ))}
-  </>
-));
-AuthNav.displayName = "AuthNav";
-
-const MobileMenu = memo(({
-  open,
-  onClose,
-  routes,
-  onNavigate,
-  currentPath,
-}: {
-  open: boolean;
-  onClose: () => void;
-  routes: Route[];
-  onNavigate: (path: string) => void;
-  currentPath: string;
-}) => (
-  <Drawer
-    anchor="right"
-    open={open}
-    onClose={onClose}
-    PaperProps={{
-      sx: {
-        width: 250,
-        backgroundColor: (theme) => theme.palette.background.paper,
-      },
-    }}
-  >
-    <List>
-      {routes.map((route) => (
-        <ListItem
-          button
+const AdminNav = memo(
+  ({
+    onNavigate,
+    currentPath,
+  }: {
+    onNavigate: (path: string) => void;
+    currentPath: string;
+  }) => (
+    <>
+      {NAVIGATION_ROUTES.admin.map((route) => (
+        <NavButton
           key={route.path}
-          onClick={() => {
-            if (currentPath !== route.path) {
-              onNavigate(route.path);
-              onClose();
-            }
-          }}
-          selected={currentPath === route.path}
+          onClick={() => onNavigate(route.path)}
+          disabled={currentPath === route.path}
           sx={{
-            "&.Mui-selected": {
-              backgroundColor: "rgba(183, 110, 121, 0.1)",
-            },
+            backgroundColor:
+              currentPath === route.path
+                ? "rgba(183, 110, 121, 0.1)"
+                : "transparent",
           }}
         >
-          <ListItemText
-            primary={route.label}
-            primaryTypographyProps={{
-              sx: {
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 600,
+          {route.label}
+        </NavButton>
+      ))}
+    </>
+  )
+);
+AdminNav.displayName = "AdminNav";
+
+const AuthNav = memo(
+  ({
+    onNavigate,
+    currentPath,
+  }: {
+    onNavigate: (path: string) => void;
+    currentPath: string;
+  }) => (
+    <>
+      {NAVIGATION_ROUTES.auth.map((route) => (
+        <NavButton
+          key={route.path}
+          onClick={() => onNavigate(route.path)}
+          disabled={currentPath === route.path}
+          sx={{
+            backgroundColor:
+              currentPath === route.path
+                ? "rgba(183, 110, 121, 0.1)"
+                : "transparent",
+          }}
+        >
+          {route.label}
+        </NavButton>
+      ))}
+    </>
+  )
+);
+AuthNav.displayName = "AuthNav";
+
+const MobileMenu = memo(
+  ({
+    open,
+    onClose,
+    routes,
+    onNavigate,
+    currentPath,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    routes: Route[];
+    onNavigate: (path: string) => void;
+    currentPath: string;
+  }) => (
+    <Drawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: {
+          width: 250,
+          backgroundColor: (theme) => theme.palette.background.paper,
+        },
+      }}
+    >
+      <List>
+        {routes.map((route) => (
+          <ListItemButton
+            key={route.path}
+            onClick={() => {
+              if (currentPath !== route.path) {
+                onNavigate(route.path);
+                onClose();
+              }
+            }}
+            selected={currentPath === route.path}
+            sx={{
+              "&.Mui-selected": {
+                backgroundColor: "rgba(183, 110, 121, 0.1)",
               },
             }}
-          />
-        </ListItem>
-      ))}
-    </List>
-  </Drawer>
-));
+          >
+            <ListItemText
+              primary={route.label}
+              primaryTypographyProps={{
+                sx: {
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                },
+              }}
+            />
+          </ListItemButton>
+        ))}
+      </List>
+    </Drawer>
+  )
+);
 MobileMenu.displayName = "MobileMenu";
 
 const Header = () => {
@@ -215,7 +259,7 @@ const Header = () => {
 
   const handleLogout = useCallback(async () => {
     if (isPending) return;
-    
+
     try {
       const response = await fetch("http://localhost:3001/auth/logout", {
         method: "POST",
@@ -235,12 +279,15 @@ const Header = () => {
     }
   }, [refreshSession, router, isPending]);
 
-  const handleNavigation = useCallback((path: string) => {
-    if (isPending || pathname === path) return;
-    startTransition(() => {
-      router.push(path);
-    });
-  }, [router, pathname, isPending]);
+  const handleNavigation = useCallback(
+    (path: string) => {
+      if (isPending || pathname === path) return;
+      startTransition(() => {
+        router.push(path);
+      });
+    },
+    [router, pathname, isPending]
+  );
 
   const handleMobileMenuClose = useCallback(() => {
     setMobileMenuOpen(false);
@@ -275,7 +322,7 @@ const Header = () => {
             <MenuIcon />
           </IconButton>
 
-          <Logo 
+          <Logo
             onClick={() => handleNavigation("/")}
             sx={{ opacity: isPending ? 0.7 : 1 }}
           >
@@ -295,20 +342,17 @@ const Header = () => {
                 {isAuthenticated ? (
                   <>
                     {isAdmin && (
-                      <AdminNav 
-                        onNavigate={handleNavigation} 
+                      <AdminNav
+                        onNavigate={handleNavigation}
                         currentPath={pathname}
                       />
                     )}
-                    <NavButton 
-                      onClick={handleLogout}
-                      disabled={isPending}
-                    >
+                    <NavButton onClick={handleLogout} disabled={isPending}>
                       Déconnexion
                     </NavButton>
                   </>
                 ) : (
-                  <AuthNav 
+                  <AuthNav
                     onNavigate={handleNavigation}
                     currentPath={pathname}
                   />

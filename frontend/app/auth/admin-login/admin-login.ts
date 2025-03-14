@@ -39,6 +39,7 @@ export default async function adminLogin(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
+      credentials: "include",
     });
 
     console.log("Status de la réponse:", res.status);

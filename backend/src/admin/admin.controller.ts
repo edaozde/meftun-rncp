@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Post } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminGuard } from 'src/auth/guards/admin-auth.guard';
@@ -15,19 +15,32 @@ export class AdminController {
     return { totalProducts, totalVariants };
   }
 
-  //  Nouvelle route pour récupérer les logs d’audit
-  @Get('logs')
+  //  Nouvelle route pour récupérer les logs d'audit
+  @Get('audit-logs')
   async getAuditLogs() {
     return this.prisma.auditLog.findMany({
       include: {
         user: {
-          select: { email: true }, //  On récupère juste l'email de l'admin
+          select: {
+            email: true,
+            role: true,
+          },
         },
         product: {
-          select: { name: true }, //  On récupère juste le nom du produit concerné
+          select: {
+            name: true,
+          },
         },
       },
-      orderBy: { createdAt: 'desc' }, //  On trie par ordre chronologique
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+  }
+
+  // Route de test pour vérifier les logs
+  @Post('test-log')
+  async testLog() {
+    return { message: 'Cette action devrait être enregistrée dans les logs' };
   }
 }

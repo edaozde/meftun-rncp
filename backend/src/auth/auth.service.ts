@@ -63,13 +63,17 @@ export class AuthService {
   async adminLogin(email: string, password: string, response: Response) {
     const user = await this.usersService.getUser({ email });
 
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
-      throw new UnauthorizedException("Accès refusé, vous n'êtes pas admin.");
+    if (!user) {
+      throw new UnauthorizedException('Email ou mot de passe incorrect.');
     }
 
     const authenticated = await bcrypt.compare(password, user.password);
     if (!authenticated) {
-      throw new UnauthorizedException('Mot de passe incorrect.');
+      throw new UnauthorizedException('Email ou mot de passe incorrect.');
+    }
+
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      throw new UnauthorizedException("Accès refusé, vous n'êtes pas admin.");
     }
 
     console.log('✅ Admin authentifié, envoi de la réponse...');

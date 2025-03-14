@@ -37,4 +37,8 @@ export const adminRoutes = [
     title: "Clients",
     path: "/admin/clients",
   },
+  {
+    title: "Logs d'audit",
+    path: "/admin/audit-logs",
+  },
 ];

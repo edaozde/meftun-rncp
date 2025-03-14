@@ -25,6 +25,21 @@ export class AuditLoggerMiddleware implements NestMiddleware {
       originalUrl.includes('/auth/login') ||
       originalUrl.includes('/auth/admin/login');
 
+    // Store the original response methods
+    const originalJson = res.json;
+    const originalSend = res.send;
+
+    // Override response methods to capture the response body
+    let responseBody: any;
+    res.json = function (body: any) {
+      responseBody = body;
+      return originalJson.call(this, body);
+    };
+    res.send = function (body: any) {
+      responseBody = body;
+      return originalSend.call(this, body);
+    };
+
     // Call next() first to let the request proceed
     next();
 
@@ -37,9 +52,18 @@ export class AuditLoggerMiddleware implements NestMiddleware {
 
       // Only log actions for admin users
       if (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN') {
-        const productId = req.params.productId
+        let productId = req.params.productId
           ? Number(req.params.productId)
           : null;
+
+        // If this is a product creation and we have a response body with an ID
+        if (
+          req.method === 'POST' &&
+          originalUrl === '/products' &&
+          responseBody?.id
+        ) {
+          productId = responseBody.id;
+        }
 
         try {
           await this.prisma.auditLog.create({

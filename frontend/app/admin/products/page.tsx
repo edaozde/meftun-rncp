@@ -40,13 +40,22 @@ export default function AdminProducts() {
     try {
       setLoading(true);
       const data = await getProducts();
+      console.log("Données reçues:", data);
+
+      if (!Array.isArray(data)) {
+        console.error("Les données reçues ne sont pas un tableau:", data);
+        return;
+      }
+
       const uniqueProducts = data.filter(
         (product, index, self) =>
           index === self.findIndex((p) => p.id === product.id)
       );
-      setProducts(uniqueProducts);
+      console.log("Produits uniques:", uniqueProducts);
+      setProducts(uniqueProducts || []);
     } catch (error) {
-      console.error("Erreur lors du chargement des produits:", error);
+      console.error("Erreur détaillée lors du chargement des produits:", error);
+      setProducts([]); // Assurez-vous d'avoir un tableau vide en cas d'erreur
     } finally {
       setLoading(false);
     }
@@ -85,32 +94,51 @@ export default function AdminProducts() {
     {
       field: "image",
       headerName: "Image",
-      width: 100,
+      width: 120,
       renderCell: (params: GridRenderCellParams<ProductType>) => {
         const hasImage = params.row.images && params.row.images.length > 0;
+        console.log("Product images:", params.row.images);
+        console.log(
+          "Image URL:",
+          hasImage
+            ? `${process.env.NEXT_PUBLIC_API_URL}${params.row.images[0].url}`
+            : "No image"
+        );
         return (
-          <Box sx={{ position: "relative", width: 50, height: 50 }}>
+          <Box
+            sx={{
+              position: "relative",
+              width: 80,
+              height: 80,
+              borderRadius: 2,
+              overflow: "hidden",
+              boxShadow: 1,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
             {hasImage ? (
               <Image
                 src={`${process.env.NEXT_PUBLIC_API_URL}${params.row.images[0].url}`}
                 alt={params.row.name}
                 fill
-                style={{ objectFit: "cover", borderRadius: 4 }}
+                style={{ objectFit: "cover" }}
+                sizes="80px"
               />
             ) : (
               <Box
                 sx={{
-                  width: 50,
-                  height: 50,
+                  width: "100%",
+                  height: "100%",
                   bgcolor: "grey.100",
-                  borderRadius: 1,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "grey.500",
+                  fontSize: "0.75rem",
                 }}
               >
-                No img
+                Pas d'image
               </Box>
             )}
           </Box>
@@ -119,16 +147,30 @@ export default function AdminProducts() {
     },
     {
       field: "name",
-      headerName: "Nom",
+      headerName: "Nom du Produit",
       flex: 1,
-      minWidth: 200,
+      minWidth: 250,
+      renderCell: (params) => (
+        <Typography
+          sx={{
+            fontWeight: 500,
+            color: "text.primary",
+            "&:hover": {
+              color: "primary.main",
+              cursor: "pointer",
+            },
+          }}
+        >
+          {params.row.name}
+        </Typography>
+      ),
     },
     {
       field: "price",
       headerName: "Prix",
       width: 120,
       renderCell: (params) => (
-        <Typography>
+        <Typography sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
           {new Intl.NumberFormat("fr-FR", {
             style: "currency",
             currency: "EUR",
@@ -153,6 +195,7 @@ export default function AdminProducts() {
                 : "success"
             }
             size="small"
+            sx={{ fontWeight: 600 }}
           />
         );
       },
@@ -160,15 +203,22 @@ export default function AdminProducts() {
     {
       field: "variants",
       headerName: "Variantes",
-      width: 200,
+      width: 250,
       renderCell: (params) => (
-        <Box sx={{ display: "flex", gap: 0.5 }}>
+        <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
           {params.row.variants.map((variant, index) => (
             <Chip
               key={index}
-              label={`${variant.size}`}
+              label={`${variant.size} - ${variant.color}`}
               size="small"
               variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                "&:hover": {
+                  backgroundColor: theme.palette.primary.light + "20",
+                },
+              }}
             />
           ))}
         </Box>
@@ -180,10 +230,11 @@ export default function AdminProducts() {
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: "flex", gap: 1 }}>
-          <Tooltip title="Voir">
+          <Tooltip title="Voir les détails">
             <IconButton
               size="small"
               onClick={() => router.push(`/admin/products/${params.row.id}`)}
+              sx={{ color: theme.palette.info.main }}
             >
               <VisibilityIcon fontSize="small" />
             </IconButton>
@@ -192,9 +243,9 @@ export default function AdminProducts() {
             <IconButton
               size="small"
               onClick={() =>
-                router.push(`/admin/products/${params.row.id}/edit`)
+                router.push(`/admin/products/edit/${params.row.id}`)
               }
-              color="primary"
+              sx={{ color: theme.palette.primary.main }}
             >
               <EditIcon fontSize="small" />
             </IconButton>
@@ -203,7 +254,7 @@ export default function AdminProducts() {
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
-              color="error"
+              sx={{ color: theme.palette.error.main }}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
@@ -235,42 +286,27 @@ export default function AdminProducts() {
         </Button>
       </Box>
 
-      <Paper
-        sx={{
-          height: "calc(100vh - 220px)",
-          width: "100%",
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          overflow: "hidden",
-        }}
-      >
+      <Paper sx={{ height: "calc(100vh - 200px)", width: "100%" }}>
         <DataGrid
           rows={products}
           columns={columns}
+          pageSize={10}
+          rowsPerPageOptions={[10]}
+          disableSelectionOnClick
           loading={loading}
-          disableRowSelectionOnClick
-          slots={{ toolbar: GridToolbar }}
-          slotProps={{
-            toolbar: {
-              showQuickFilter: true,
-              quickFilterProps: { debounceMs: 500 },
-            },
-          }}
+          components={{ Toolbar: GridToolbar }}
           sx={{
             border: "none",
-            "& .MuiDataGrid-cell:focus": {
-              outline: "none",
+            "& .MuiDataGrid-cell": {
+              borderBottom: "1px solid",
+              borderColor: "divider",
             },
-            "& .MuiDataGrid-row:hover": {
-              bgcolor: "action.hover",
-            },
-          }}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10 },
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "background.paper",
+              borderBottom: "2px solid",
+              borderColor: "primary.main",
             },
           }}
-          pageSizeOptions={[10, 25, 50]}
         />
       </Paper>
     </Box>
